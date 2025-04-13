@@ -18,6 +18,7 @@ export function AuthForm() {
   const [registerEmail, setRegisterEmail] = useState("");
   const [registerPassword, setRegisterPassword] = useState("");
   const [registerRole, setRegisterRole] = useState<UserRole>("student");
+  const [identificationNumber, setIdentificationNumber] = useState("");
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,9 +36,19 @@ export function AuthForm() {
     setIsLoading(true);
     
     try {
-      await register(registerName, registerEmail, registerPassword, registerRole);
+      await register(registerName, registerEmail, registerPassword, registerRole, identificationNumber);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Helper to get the proper label for the identification field based on role
+  const getIdNumberLabel = () => {
+    switch (registerRole) {
+      case "student": return "Student Number";
+      case "admin": return "Admin Staff Number";
+      case "technician": return "Technician Staff Number";
+      default: return "Identification Number";
     }
   };
 
@@ -143,6 +154,16 @@ export function AuthForm() {
                     <SelectItem value="technician">Technician</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="identification-number">{getIdNumberLabel()}</Label>
+                <Input
+                  id="identification-number"
+                  placeholder={`Enter your ${getIdNumberLabel().toLowerCase()}`}
+                  value={identificationNumber}
+                  onChange={(e) => setIdentificationNumber(e.target.value)}
+                  required
+                />
               </div>
             </CardContent>
             <CardFooter>

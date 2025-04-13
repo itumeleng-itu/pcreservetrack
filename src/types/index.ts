@@ -6,6 +6,7 @@ export interface User {
   name: string;
   email: string;
   role: UserRole;
+  identificationNumber?: string; // Student number or staff number
 }
 
 export type ComputerStatus = "available" | "reserved" | "faulty";

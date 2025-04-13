@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, ReactNode } from "react";
 import { User, UserRole } from "../types";
 import { mockUsers } from "../services/mockData";
@@ -7,7 +8,7 @@ interface AuthContextType {
   currentUser: User | null;
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
-  register: (name: string, email: string, password: string, role: UserRole) => Promise<boolean>;
+  register: (name: string, email: string, password: string, role: UserRole, identificationNumber: string) => Promise<boolean>;
   isAuthenticated: boolean;
 }
 
@@ -44,7 +45,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return false;
   };
 
-  const register = async (name: string, email: string, password: string, role: UserRole): Promise<boolean> => {
+  const register = async (
+    name: string, 
+    email: string, 
+    password: string, 
+    role: UserRole, 
+    identificationNumber: string
+  ): Promise<boolean> => {
     // Check if user already exists
     const existingUser = mockUsers.find(u => u.email === email);
     
@@ -57,12 +64,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return false;
     }
 
+    // Check if identification number is already in use
+    const existingIdentification = mockUsers.find(
+      u => u.identificationNumber === identificationNumber && u.role === role
+    );
+
+    if (existingIdentification) {
+      toast({
+        title: "Registration failed",
+        description: `This ${role === "student" ? "student" : "staff"} number is already registered`,
+        variant: "destructive",
+      });
+      return false;
+    }
+
     // Create a new user (in a real app, this would save to a database)
     const newUser: User = {
       id: String(mockUsers.length + 1),
       name,
       email,
-      role
+      role,
+      identificationNumber
     };
     
     mockUsers.push(newUser);

@@ -14,6 +14,7 @@ interface ComputerContextType {
   getAvailableComputers: () => Computer[];
   getReservedComputers: () => Computer[];
   getFaultyComputers: () => Computer[];
+  hasActiveReservation: (userId: string) => boolean;
 }
 
 const ComputerContext = createContext<ComputerContextType | undefined>(undefined);
@@ -35,11 +36,30 @@ export const ComputerProvider = ({ children }: { children: ReactNode }) => {
     return computers.filter(c => c.status === "faulty");
   };
 
+  // Check if a user has an active reservation
+  const hasActiveReservation = (userId: string) => {
+    return mockReservations.some(
+      r => r.userId === userId && r.status === "active"
+    ) || computers.some(
+      c => c.status === "reserved" && c.reservedBy === userId
+    );
+  };
+
   const reserveComputer = (computerId: string, hours: number) => {
     if (!currentUser) {
       toast({
         title: "Authentication required",
         description: "Please login to reserve a computer",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check if user is a student and already has a reservation
+    if (currentUser.role === "student" && hasActiveReservation(currentUser.id)) {
+      toast({
+        title: "Reservation failed",
+        description: "Students can only reserve one computer at a time",
         variant: "destructive",
       });
       return;
@@ -178,7 +198,8 @@ export const ComputerProvider = ({ children }: { children: ReactNode }) => {
         fixComputer,
         getAvailableComputers,
         getReservedComputers,
-        getFaultyComputers
+        getFaultyComputers,
+        hasActiveReservation
       }}
     >
       {children}
