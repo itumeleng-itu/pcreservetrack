@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,7 +9,7 @@ import { Computer } from "@/types";
 import { useComputers } from "@/context/ComputerContext";
 import { useAuth } from "@/context/AuthContext";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Monitor, AlertTriangle, Clock } from "lucide-react";
+import { Monitor, AlertTriangle, Clock, Cpu, Memory, Wifi, WifiOff } from "lucide-react";
 
 interface ComputerCardProps {
   computer: Computer;
@@ -58,6 +57,10 @@ export function ComputerCard({ computer }: ComputerCardProps) {
   const isStudent = currentUser?.role === "student";
   const isAdmin = currentUser?.role === "admin";
   const isTechnician = currentUser?.role === "technician";
+  
+  const isOnline = computer.tracking?.online;
+  const cpuUsage = computer.tracking?.cpuUsage;
+  const memoryUsage = computer.tracking?.memoryUsage;
 
   return (
     <Card className="w-full">
@@ -70,9 +73,17 @@ export function ComputerCard({ computer }: ComputerCardProps) {
             </CardTitle>
             <CardDescription>{computer.location}</CardDescription>
           </div>
-          <Badge className={getStatusColor(computer.status)}>
-            {computer.status.charAt(0).toUpperCase() + computer.status.slice(1)}
-          </Badge>
+          <div className="flex space-x-2">
+            {isOnline !== undefined && (
+              <Badge className={isOnline ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}>
+                {isOnline ? <Wifi size={14} className="mr-1" /> : <WifiOff size={14} className="mr-1" />}
+                {isOnline ? "Online" : "Offline"}
+              </Badge>
+            )}
+            <Badge className={getStatusColor(computer.status)}>
+              {computer.status.charAt(0).toUpperCase() + computer.status.slice(1)}
+            </Badge>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
@@ -95,10 +106,33 @@ export function ComputerCard({ computer }: ComputerCardProps) {
               <span className="text-xs">{computer.faultDescription}</span>
             </div>
           )}
+          
+          {computer.tracking && (
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              {cpuUsage !== undefined && (
+                <div className="flex items-center text-gray-600">
+                  <Cpu className="mr-1" size={14} />
+                  <span className="text-xs">CPU: {cpuUsage}%</span>
+                </div>
+              )}
+              {memoryUsage !== undefined && (
+                <div className="flex items-center text-gray-600">
+                  <Memory className="mr-1" size={14} />
+                  <span className="text-xs">Memory: {memoryUsage}%</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {computer.lastSeen && (
+            <div className="mt-1 text-xs text-gray-500">
+              Last seen: {new Date(computer.lastSeen).toLocaleString()}
+            </div>
+          )}
         </div>
       </CardContent>
       <CardFooter className="flex justify-between">
-        {isStudent && computer.status === "available" && (
+        {isStudent && computer.status === "available" && isOnline && (
           <Dialog>
             <DialogTrigger asChild>
               <Button size="sm">Reserve</Button>
@@ -136,6 +170,12 @@ export function ComputerCard({ computer }: ComputerCardProps) {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+        )}
+        
+        {isStudent && computer.status === "available" && !isOnline && (
+          <Button size="sm" variant="outline" disabled>
+            Offline
+          </Button>
         )}
         
         {isStudent && isReservedByCurrentUser && (

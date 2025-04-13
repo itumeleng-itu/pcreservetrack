@@ -1,6 +1,5 @@
-
 import React, { createContext, useContext, useState, ReactNode } from "react";
-import { Computer, ComputerStatus } from "../types";
+import { Computer, ComputerStatus, ComputerTracking } from "../types";
 import { mockComputers, mockReservations } from "../services/mockData";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "./AuthContext";
@@ -15,6 +14,7 @@ interface ComputerContextType {
   getReservedComputers: () => Computer[];
   getFaultyComputers: () => Computer[];
   hasActiveReservation: (userId: string) => boolean;
+  updateComputersFromTracking: (trackingData: ComputerTracking[]) => void;
 }
 
 const ComputerContext = createContext<ComputerContextType | undefined>(undefined);
@@ -36,7 +36,6 @@ export const ComputerProvider = ({ children }: { children: ReactNode }) => {
     return computers.filter(c => c.status === "faulty");
   };
 
-  // Check if a user has an active reservation
   const hasActiveReservation = (userId: string) => {
     return mockReservations.some(
       r => r.userId === userId && r.status === "active"
@@ -55,7 +54,6 @@ export const ComputerProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    // Check if user is a student and already has a reservation
     if (currentUser.role === "student" && hasActiveReservation(currentUser.id)) {
       toast({
         title: "Reservation failed",
@@ -70,7 +68,6 @@ export const ComputerProvider = ({ children }: { children: ReactNode }) => {
         const endTime = new Date();
         endTime.setHours(endTime.getHours() + hours);
         
-        // Create a new reservation
         const newReservation = {
           id: String(mockReservations.length + 1),
           computerId,
@@ -102,7 +99,6 @@ export const ComputerProvider = ({ children }: { children: ReactNode }) => {
   const releaseComputer = (computerId: string) => {
     const updatedComputers = computers.map(computer => {
       if (computer.id === computerId && computer.status === "reserved") {
-        // Update the reservation status
         const reservation = mockReservations.find(
           r => r.computerId === computerId && r.status === "active"
         );
@@ -131,7 +127,6 @@ export const ComputerProvider = ({ children }: { children: ReactNode }) => {
   const reportFault = (computerId: string, description: string) => {
     const updatedComputers = computers.map(computer => {
       if (computer.id === computerId) {
-        // If the computer was reserved, cancel the reservation
         if (computer.status === "reserved") {
           const reservation = mockReservations.find(
             r => r.computerId === computerId && r.status === "active"
@@ -188,6 +183,29 @@ export const ComputerProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
+  const updateComputersFromTracking = (trackingData: ComputerTracking[]) => {
+    setComputers(prevComputers => {
+      return prevComputers.map(computer => {
+        const trackingInfo = trackingData.find(t => t.computerId === computer.id);
+        
+        if (trackingInfo) {
+          return {
+            ...computer,
+            lastSeen: trackingInfo.lastHeartbeat,
+            tracking: {
+              online: trackingInfo.online,
+              lastHeartbeat: trackingInfo.lastHeartbeat,
+              cpuUsage: trackingInfo.cpuUsage,
+              memoryUsage: trackingInfo.memoryUsage
+            }
+          };
+        }
+        
+        return computer;
+      });
+    });
+  };
+
   return (
     <ComputerContext.Provider
       value={{
@@ -199,7 +217,8 @@ export const ComputerProvider = ({ children }: { children: ReactNode }) => {
         getAvailableComputers,
         getReservedComputers,
         getFaultyComputers,
-        hasActiveReservation
+        hasActiveReservation,
+        updateComputersFromTracking
       }}
     >
       {children}

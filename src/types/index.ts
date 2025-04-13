@@ -20,6 +20,15 @@ export interface Computer {
   reservedBy?: string;
   reservedUntil?: Date;
   faultDescription?: string;
+  lastSeen?: Date;
+  ipAddress?: string;
+  macAddress?: string;
+  tracking?: {
+    online: boolean;
+    lastHeartbeat: Date;
+    cpuUsage?: number;
+    memoryUsage?: number;
+  };
 }
 
 export interface Reservation {
@@ -29,4 +38,12 @@ export interface Reservation {
   startTime: Date;
   endTime: Date;
   status: "active" | "completed" | "cancelled";
+}
+
+export interface ComputerTracking {
+  computerId: string;
+  online: boolean;
+  lastHeartbeat: Date;
+  cpuUsage?: number;
+  memoryUsage?: number;
 }
