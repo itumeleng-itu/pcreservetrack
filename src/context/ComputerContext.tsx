@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useState, ReactNode } from "react";
 import { Computer, ComputerStatus } from "../types";
 import { mockComputers, mockReservations } from "../services/mockData";
-import { useToast } from "@/components/ui/toast";
+import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "./AuthContext";
 
 interface ComputerContextType {
