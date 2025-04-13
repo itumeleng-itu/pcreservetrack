@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, ReactNode } from "react";
 import { Computer, ComputerStatus, ComputerTracking } from "../types";
 import { mockComputers, mockReservations } from "../services/mockData";
@@ -20,7 +21,10 @@ interface ComputerContextType {
 const ComputerContext = createContext<ComputerContextType | undefined>(undefined);
 
 export const ComputerProvider = ({ children }: { children: ReactNode }) => {
-  const [computers, setComputers] = useState<Computer[]>(mockComputers);
+  const [computers, setComputers] = useState<Computer[]>(mockComputers.map(computer => ({
+    ...computer,
+    reservedBy: undefined, // Ensure no computer is initially reserved by a student
+  })));
   const { toast } = useToast();
   const { currentUser } = useAuth();
 

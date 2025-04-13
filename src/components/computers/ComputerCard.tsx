@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,7 +20,7 @@ export function ComputerCard({ computer }: ComputerCardProps) {
   const { reserveComputer, releaseComputer, reportFault, fixComputer } = useComputers();
   const { currentUser } = useAuth();
   const [faultDescription, setFaultDescription] = useState("");
-  const [reservationHours, setReservationHours] = useState("1");
+  const [reservationHours, setReservationHours] = useState("0.25"); // Set default to 15 minutes (0.25 hours)
   
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -35,7 +36,7 @@ export function ComputerCard({ computer }: ComputerCardProps) {
   };
 
   const handleReserve = () => {
-    reserveComputer(computer.id, parseInt(reservationHours));
+    reserveComputer(computer.id, parseFloat(reservationHours));
   };
 
   const handleRelease = () => {
@@ -147,20 +148,21 @@ export function ComputerCard({ computer }: ComputerCardProps) {
               <div className="grid gap-4 py-4">
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="hours" className="text-right">
-                    Hours
+                    Time
                   </Label>
                   <Select
                     value={reservationHours}
                     onValueChange={setReservationHours}
+                    defaultValue="0.25"
                   >
                     <SelectTrigger className="col-span-3">
-                      <SelectValue placeholder="Select hours" />
+                      <SelectValue placeholder="Select reservation time" />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="0.25">15 minutes</SelectItem>
+                      <SelectItem value="0.5">30 minutes</SelectItem>
                       <SelectItem value="1">1 hour</SelectItem>
                       <SelectItem value="2">2 hours</SelectItem>
-                      <SelectItem value="3">3 hours</SelectItem>
-                      <SelectItem value="4">4 hours</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
