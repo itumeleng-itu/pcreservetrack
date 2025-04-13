@@ -8,10 +8,10 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/context/AuthContext";
 import { UserRole } from "@/types";
+import { Loader2 } from "lucide-react";
 
 export function AuthForm() {
-  const { login, register } = useAuth();
-  const [isLoading, setIsLoading] = useState(false);
+  const { login, register, isLoading } = useAuth();
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [registerName, setRegisterName] = useState("");
@@ -22,24 +22,12 @@ export function AuthForm() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    
-    try {
-      await login(loginEmail, loginPassword);
-    } finally {
-      setIsLoading(false);
-    }
+    await login(loginEmail, loginPassword);
   };
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    
-    try {
-      await register(registerName, registerEmail, registerPassword, registerRole, identificationNumber);
-    } finally {
-      setIsLoading(false);
-    }
+    await register(registerName, registerEmail, registerPassword, registerRole, identificationNumber);
   };
 
   // Helper to get the proper label for the identification field based on role
@@ -78,6 +66,7 @@ export function AuthForm() {
                   value={loginEmail}
                   onChange={(e) => setLoginEmail(e.target.value)}
                   required
+                  disabled={isLoading}
                 />
               </div>
               <div className="space-y-2">
@@ -88,12 +77,20 @@ export function AuthForm() {
                   value={loginPassword}
                   onChange={(e) => setLoginPassword(e.target.value)}
                   required
+                  disabled={isLoading}
                 />
               </div>
             </CardContent>
             <CardFooter>
               <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Logging in..." : "Login"}
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Logging in...
+                  </>
+                ) : (
+                  "Login"
+                )}
               </Button>
             </CardFooter>
           </form>
@@ -116,6 +113,7 @@ export function AuthForm() {
                   value={registerName}
                   onChange={(e) => setRegisterName(e.target.value)}
                   required
+                  disabled={isLoading}
                 />
               </div>
               <div className="space-y-2">
@@ -127,6 +125,7 @@ export function AuthForm() {
                   value={registerEmail}
                   onChange={(e) => setRegisterEmail(e.target.value)}
                   required
+                  disabled={isLoading}
                 />
               </div>
               <div className="space-y-2">
@@ -137,6 +136,8 @@ export function AuthForm() {
                   value={registerPassword}
                   onChange={(e) => setRegisterPassword(e.target.value)}
                   required
+                  disabled={isLoading}
+                  minLength={6}
                 />
               </div>
               <div className="space-y-2">
@@ -144,6 +145,7 @@ export function AuthForm() {
                 <Select
                   value={registerRole}
                   onValueChange={(value) => setRegisterRole(value as UserRole)}
+                  disabled={isLoading}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select your role" />
@@ -163,12 +165,20 @@ export function AuthForm() {
                   value={identificationNumber}
                   onChange={(e) => setIdentificationNumber(e.target.value)}
                   required
+                  disabled={isLoading}
                 />
               </div>
             </CardContent>
             <CardFooter>
               <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Creating Account..." : "Register"}
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Creating Account...
+                  </>
+                ) : (
+                  "Register"
+                )}
               </Button>
             </CardFooter>
           </form>

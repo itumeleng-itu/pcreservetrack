@@ -3,10 +3,19 @@ import React from "react";
 import { Navigate } from "react-router-dom";
 import { AuthForm } from "@/components/auth/AuthForm";
 import { useAuth } from "@/context/AuthContext";
-import { Laptop } from "lucide-react";
+import { Laptop, Loader2 } from "lucide-react";
 
 const AuthPage = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center">
+        <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
+        <p className="mt-4 text-gray-600">Loading authentication status...</p>
+      </div>
+    );
+  }
 
   if (isAuthenticated) {
     return <Navigate to="/dashboard" />;
