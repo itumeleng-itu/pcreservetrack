@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Computer } from "@/types";
-import { Cpu, Memory, Wifi, WifiOff } from "lucide-react";
+import { Cpu, HardDrive, Wifi, WifiOff } from "lucide-react";
 
 interface ComputerTrackingTableProps {
   computers: Computer[];
@@ -76,7 +76,7 @@ export function ComputerTrackingTable({ computers }: ComputerTrackingTableProps)
               <TableCell>
                 {computer.tracking?.memoryUsage !== undefined ? (
                   <div className="flex items-center">
-                    <Memory size={14} className="mr-1" />
+                    <HardDrive size={14} className="mr-1" />
                     <div className="w-32 bg-gray-200 rounded-full h-2.5 mr-2">
                       <div
                         className="bg-purple-600 h-2.5 rounded-full"

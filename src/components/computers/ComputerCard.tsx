@@ -9,7 +9,7 @@ import { Computer } from "@/types";
 import { useComputers } from "@/context/ComputerContext";
 import { useAuth } from "@/context/AuthContext";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Monitor, AlertTriangle, Clock, Cpu, Memory, Wifi, WifiOff } from "lucide-react";
+import { Monitor, AlertTriangle, Clock, Cpu, HardDrive, Wifi, WifiOff } from "lucide-react";
 
 interface ComputerCardProps {
   computer: Computer;
@@ -95,7 +95,7 @@ export function ComputerCard({ computer }: ComputerCardProps) {
             <div className="mt-2 flex items-center text-blue-600">
               <Clock className="mr-1" size={14} />
               <span className="text-xs">
-                Reserved until {new Date(computer.reservedUntil).toLocaleTimeString()}
+                Reserved until {new Date(computer.reservedUntil).toLocaleString()}
               </span>
             </div>
           )}
@@ -117,7 +117,7 @@ export function ComputerCard({ computer }: ComputerCardProps) {
               )}
               {memoryUsage !== undefined && (
                 <div className="flex items-center text-gray-600">
-                  <Memory className="mr-1" size={14} />
+                  <HardDrive className="mr-1" size={14} />
                   <span className="text-xs">Memory: {memoryUsage}%</span>
                 </div>
               )}
