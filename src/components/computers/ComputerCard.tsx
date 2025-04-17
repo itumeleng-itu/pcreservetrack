@@ -21,6 +21,7 @@ export function ComputerCard({ computer }: ComputerCardProps) {
   const { currentUser } = useAuth();
   const [faultDescription, setFaultDescription] = useState("");
   const [reservationHours, setReservationHours] = useState("0.25"); // Set default to 15 minutes (0.25 hours)
+  const [isReserving, setIsReserving] = useState(false);
   
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -36,7 +37,9 @@ export function ComputerCard({ computer }: ComputerCardProps) {
   };
 
   const handleReserve = () => {
+    setIsReserving(true);
     reserveComputer(computer.id, parseFloat(reservationHours));
+    setIsReserving(false);
   };
 
   const handleRelease = () => {
@@ -97,6 +100,7 @@ export function ComputerCard({ computer }: ComputerCardProps) {
               <Clock className="mr-1" size={14} />
               <span className="text-xs">
                 Reserved until {new Date(computer.reservedUntil).toLocaleString()}
+                {computer.reservedBy && computer.reservedBy === currentUser?.id && " (by you)"}
               </span>
             </div>
           )}
@@ -168,7 +172,9 @@ export function ComputerCard({ computer }: ComputerCardProps) {
                 </div>
               </div>
               <DialogFooter>
-                <Button onClick={handleReserve}>Reserve</Button>
+                <Button onClick={handleReserve} disabled={isReserving}>
+                  {isReserving ? "Reserving..." : "Reserve"}
+                </Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -182,6 +188,12 @@ export function ComputerCard({ computer }: ComputerCardProps) {
         
         {isStudent && isReservedByCurrentUser && (
           <Button size="sm" onClick={handleRelease}>Release</Button>
+        )}
+        
+        {isStudent && computer.status === "reserved" && !isReservedByCurrentUser && (
+          <Button size="sm" variant="outline" disabled>
+            Reserved
+          </Button>
         )}
         
         {isStudent && computer.status !== "faulty" && (

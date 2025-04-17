@@ -84,6 +84,17 @@ export const ComputerProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
+    // Check if the computer is still available (could have been reserved by another user)
+    const computerToReserve = computers.find(c => c.id === computerId);
+    if (!computerToReserve || computerToReserve.status !== "available") {
+      toast({
+        title: "Reservation failed",
+        description: "This computer is no longer available",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (currentUser.role === "student" && hasActiveReservation(currentUser.id)) {
       toast({
         title: "Reservation failed",
