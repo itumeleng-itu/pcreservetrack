@@ -1,0 +1,64 @@
+
+import React, { useState } from "react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+
+interface ReservationDialogProps {
+  onReserve: (hours: number) => void;
+}
+
+export function ReservationDialog({ onReserve }: ReservationDialogProps) {
+  const [reservationHours, setReservationHours] = useState("0.25"); // Default to 15 minutes
+  const [isReserving, setIsReserving] = useState(false);
+  
+  const handleReserve = () => {
+    setIsReserving(true);
+    onReserve(parseFloat(reservationHours));
+    setIsReserving(false);
+  };
+
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button size="sm">Reserve</Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Reserve Computer</DialogTitle>
+          <DialogDescription>
+            Choose how long you'd like to reserve this computer.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4 py-4">
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="hours" className="text-right">
+              Time
+            </Label>
+            <Select
+              value={reservationHours}
+              onValueChange={setReservationHours}
+              defaultValue="0.25"
+            >
+              <SelectTrigger className="col-span-3">
+                <SelectValue placeholder="Select reservation time" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="0.25">15 minutes</SelectItem>
+                <SelectItem value="0.5">30 minutes</SelectItem>
+                <SelectItem value="1">1 hour</SelectItem>
+                <SelectItem value="2">2 hours</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button onClick={handleReserve} disabled={isReserving}>
+            {isReserving ? "Reserving..." : "Reserve"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
