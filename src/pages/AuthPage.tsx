@@ -3,7 +3,7 @@ import React from "react";
 import { Navigate } from "react-router-dom";
 import { AuthForm } from "@/components/auth/AuthForm";
 import { useAuth } from "@/context/AuthContext";
-import { Laptop, Loader2 } from "lucide-react";
+import { Laptop, Loader2, Fingerprint } from "lucide-react";
 
 const AuthPage = () => {
   const { isAuthenticated, isLoading } = useAuth();
@@ -25,10 +25,16 @@ const AuthPage = () => {
     <div className="min-h-screen flex flex-col items-center justify-center auth-container">
       <div className="w-full max-w-md px-4">
         <div className="flex flex-col items-center mb-8 text-white">
-          <Laptop className="h-12 w-12 mb-2" />
+          <div className="flex items-center gap-2">
+            <Laptop className="h-12 w-12 mb-2" />
+            <Fingerprint className="h-10 w-10 mb-2 text-blue-300" />
+          </div>
           <h1 className="text-3xl font-bold">ComputeHubReserve</h1>
           <p className="mt-2 text-center">
             Sign in or create an account to manage computer reservations
+          </p>
+          <p className="text-sm text-blue-200 mt-1">
+            Now with fingerprint authentication for supported devices
           </p>
         </div>
         

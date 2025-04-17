@@ -8,7 +8,9 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/context/AuthContext";
 import { UserRole } from "@/types";
-import { Loader2 } from "lucide-react";
+import { Loader2, Fingerprint } from "lucide-react";
+import { FingerprintAuth } from "./FingerprintAuth";
+import { Separator } from "@/components/ui/separator";
 
 export function AuthForm() {
   const { login, register, isLoading } = useAuth();
@@ -80,8 +82,7 @@ export function AuthForm() {
                   disabled={isLoading}
                 />
               </div>
-            </CardContent>
-            <CardFooter>
+              
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? (
                   <>
@@ -89,10 +90,21 @@ export function AuthForm() {
                     Logging in...
                   </>
                 ) : (
-                  "Login"
+                  "Login with Email"
                 )}
               </Button>
-            </CardFooter>
+
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-white px-2 text-gray-500">Or continue with</span>
+                </div>
+              </div>
+              
+              <FingerprintAuth onAuthSuccess={() => login(loginEmail, loginPassword)} />
+            </CardContent>
           </form>
         </TabsContent>
         
