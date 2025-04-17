@@ -5,11 +5,12 @@ import { useComputers } from "@/context/ComputerContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
+import { useAuth } from "@/context/AuthContext";
 import { Computer } from "@/types";
 
 export function StudentDashboard() {
   const { computers } = useComputers();
+  const { currentUser } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [locationFilter, setLocationFilter] = useState("all");
   
@@ -18,8 +19,10 @@ export function StudentDashboard() {
   // Get unique locations for the filter
   const locations = Array.from(new Set(computers.map(c => c.location)));
   
-  // User's reserved computers
-  const myReservations = computers.filter(c => c.status === "reserved" && c.reservedBy === "1"); // Hard-coded user ID for demo
+  // User's reserved computers - using currentUser.id instead of hardcoded value
+  const myReservations = computers.filter(c => 
+    c.status === "reserved" && c.reservedBy === currentUser?.id
+  );
   
   // Filter available computers by search term and location
   const filteredComputers = availableComputers.filter(computer => {
