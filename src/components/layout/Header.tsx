@@ -44,7 +44,7 @@ export function Header() {
           <Link to="/" className="flex items-center">
             <Laptop className="h-6 w-6 text-blue-600 mr-2" />
             <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-violet-600">
-              ComputeHubReserve
+              PCReserveTrack
             </span>
           </Link>
         </div>

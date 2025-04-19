@@ -15,10 +15,10 @@ const Index = () => {
       <div className="flex flex-col items-center text-center py-12">
         <div className="max-w-3xl mx-auto">
           <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-violet-600 mb-6">
-            Computer Lab Reservation System
+            PC Lab Reservation Tracking
           </h1>
           <p className="mt-4 text-xl text-gray-600 mb-8">
-            Efficiently manage computer lab resources for students, administrators, and support staff
+            Efficiently manage PC lab resources for students, administrators, and support staff
           </p>
           
           {isAuthenticated ? (
