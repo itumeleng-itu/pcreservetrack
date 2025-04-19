@@ -1,4 +1,3 @@
-
 export type UserRole = "student" | "admin" | "technician";
 
 export interface User {
@@ -7,6 +6,7 @@ export interface User {
   email: string;
   role: UserRole;
   identificationNumber?: string; // Student number or staff number
+  avatar_url?: string; // Added avatar URL
 }
 
 export type ComputerStatus = "available" | "reserved" | "faulty";

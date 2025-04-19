@@ -3,7 +3,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -58,6 +58,10 @@ export function Header() {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="rounded-full">
                     <Avatar className={`h-8 w-8 ${getRoleClass()}`}>
+                      <AvatarImage 
+                        src={currentUser?.avatar_url ?? undefined} 
+                        alt={`${currentUser?.name}'s avatar`} 
+                      />
                       <AvatarFallback>{getInitials(currentUser?.name || "")}</AvatarFallback>
                     </Avatar>
                   </Button>
@@ -65,10 +69,12 @@ export function Header() {
                 <DropdownMenuContent align="end">
                   <DropdownMenuLabel>My Account</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem disabled className="flex items-center gap-2">
-                    <User className="h-4 w-4" />
-                    <span>Profile</span>
-                  </DropdownMenuItem>
+                  <Link to="/profile">
+                    <DropdownMenuItem className="flex items-center gap-2 cursor-pointer">
+                      <User className="h-4 w-4" />
+                      <span>Profile</span>
+                    </DropdownMenuItem>
+                  </Link>
                   <DropdownMenuItem onClick={logout} className="flex items-center gap-2 text-red-600">
                     <LogOut className="h-4 w-4" />
                     <span>Log out</span>

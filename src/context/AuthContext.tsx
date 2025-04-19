@@ -66,7 +66,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           name: data.name,
           email: data.email,
           role: data.role as UserRole,
-          identificationNumber: data.staff_num || ""
+          identificationNumber: data.staff_num || "",
+          avatar_url: data.avatar_url
         };
         setCurrentUser(userData);
       }
