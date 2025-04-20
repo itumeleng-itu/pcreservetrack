@@ -1,5 +1,5 @@
-
 import { Computer } from "../types";
+import { isPublicHoliday, getPublicHolidayMessage } from "./dateUtils";
 
 // Generate 200 mock computers with iCentre1 and iCentre2 locations (100 each)
 export const generateExtendedComputers = (): Computer[] => {
@@ -34,6 +34,12 @@ export const generateExtendedComputers = (): Computer[] => {
 // Utility function to check if the current time is within booking hours
 export const isWithinBookingHours = (): boolean => {
   const now = new Date();
+  
+  // Check if it's a public holiday
+  if (isPublicHoliday(now).isHoliday) {
+    return false;
+  }
+  
   const dayOfWeek = now.getDay(); // 0 is Sunday, 1 is Monday, etc.
   const hour = now.getHours();
   
@@ -58,6 +64,13 @@ export const isWithinBookingHours = (): boolean => {
 // Get formatted booking hours message based on the current day
 export const getBookingHoursMessage = (): string => {
   const now = new Date();
+  
+  // Check for public holiday first
+  const holidayMessage = getPublicHolidayMessage(now);
+  if (holidayMessage) {
+    return holidayMessage;
+  }
+  
   const dayOfWeek = now.getDay();
   
   if (dayOfWeek === 0) {

@@ -8,6 +8,7 @@ import { ComputerCardHeader } from "./ComputerCardHeader";
 import { ComputerSpecs } from "./ComputerSpecs";
 import { ComputerCardActions } from "./ComputerCardActions";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 interface ComputerCardProps {
   computer: Computer;
@@ -34,11 +35,24 @@ export function ComputerCard({ computer }: ComputerCardProps) {
   };
 
   const isReservedByCurrentUser = computer.reservedBy === currentUser?.id;
+  const isOnline = computer.tracking?.online;
 
   return (
-    <Card className="w-full">
+    <Card 
+      className={cn(
+        "w-full transition-all duration-200",
+        isOnline ? "bg-white" : "bg-gray-100 opacity-75",
+        computer.status === "faulty" && "border-red-200",
+        computer.status === "reserved" && "border-blue-200"
+      )}
+    >
       <ComputerCardHeader computer={computer} />
-      <CardContent>
+      <CardContent className="relative">
+        {!isOnline && (
+          <div className="absolute inset-0 bg-gray-50/90 backdrop-blur-sm flex items-center justify-center">
+            <Badge variant="outline" className="bg-white">Inactive</Badge>
+          </div>
+        )}
         {computer.isEmergency && (
           <Badge className="mb-2" variant="destructive">Emergency</Badge>
         )}
