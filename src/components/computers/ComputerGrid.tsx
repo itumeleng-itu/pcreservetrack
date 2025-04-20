@@ -30,44 +30,69 @@ export function ComputerGrid({ computers, emptyMessage = "No computers available
   });
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-12">
       {Object.entries(computersByLocation).map(([location, locationComputers]) => (
-        <div key={location} className="space-y-4">
-          <h3 className="text-xl font-bold">{location}</h3>
-          <div className="space-y-6 overflow-x-auto pb-4">
-            {/* Split into rows of 20 computers with a gap in the middle */}
-            {Array.from({ length: Math.ceil(locationComputers.length / 20) }).map((_, rowIndex) => {
-              const rowComputers = locationComputers.slice(rowIndex * 20, (rowIndex + 1) * 20);
-              
-              // Split the row into two halves for the middle gap
-              const firstHalf = rowComputers.slice(0, 10);
-              const secondHalf = rowComputers.slice(10);
-              
-              return (
-                <div key={rowIndex} className="flex flex-col">
-                  <div className="text-sm text-gray-500 mb-2">Row {rowIndex + 1}</div>
-                  <div className="flex space-x-8">
-                    <div className="flex space-x-2 overflow-x-auto pb-2">
-                      {firstHalf.map((computer) => (
-                        <div key={computer.id} className="min-w-[220px]">
-                          <ComputerCard computer={computer} />
+        <div key={location} className="space-y-6">
+          <div className="flex items-center space-x-4">
+            <h3 className="text-xl font-bold">{location}</h3>
+            <div className="text-sm text-gray-500">
+              ({locationComputers.length} computers)
+            </div>
+          </div>
+          
+          <div className="relative">
+            {/* Left entrance indicator */}
+            <div className="absolute -left-24 top-1/2 -translate-y-1/2 bg-cyan-500 h-32 w-20 flex items-center justify-center text-white font-medium rounded-l-lg">
+              Entrance
+            </div>
+            
+            <div className="space-y-8">
+              {/* Split into rows of 16 computers (8 on each side) */}
+              {Array.from({ length: Math.ceil(locationComputers.length / 16) }).map((_, rowIndex) => {
+                const rowComputers = locationComputers.slice(rowIndex * 16, (rowIndex + 1) * 16);
+                const firstHalf = rowComputers.slice(0, 8);
+                const secondHalf = rowComputers.slice(8);
+                
+                return (
+                  <div key={rowIndex} className="relative">
+                    <div className="flex flex-col space-y-2">
+                      <div className="flex justify-between">
+                        <div className="text-sm text-gray-500">Row {rowIndex + 1}</div>
+                        {rowIndex === 0 && (
+                          <div className="absolute -right-24 top-1/2 -translate-y-1/2 bg-green-500 h-32 w-20 flex items-center justify-center text-white font-medium rounded-r-lg">
+                            Exit
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex space-x-8">
+                        {/* Left side computers */}
+                        <div className="flex space-x-2 bg-gray-100 p-4 rounded-lg">
+                          {firstHalf.map((computer) => (
+                            <div key={computer.id} className="w-[180px]">
+                              <ComputerCard computer={computer} />
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
-                    <div className="w-8 border-l border-dashed border-gray-300 flex items-center justify-center">
-                      <span className="text-xs text-gray-400 rotate-90">Aisle</span>
-                    </div>
-                    <div className="flex space-x-2 overflow-x-auto pb-2">
-                      {secondHalf.map((computer) => (
-                        <div key={computer.id} className="min-w-[220px]">
-                          <ComputerCard computer={computer} />
+                        
+                        {/* Center aisle */}
+                        <div className="w-8 border-l border-dashed border-gray-300 flex items-center justify-center">
+                          <span className="text-xs text-gray-400 rotate-90">Aisle</span>
                         </div>
-                      ))}
+                        
+                        {/* Right side computers */}
+                        <div className="flex space-x-2 bg-gray-100 p-4 rounded-lg">
+                          {secondHalf.map((computer) => (
+                            <div key={computer.id} className="w-[180px]">
+                              <ComputerCard computer={computer} />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
         </div>
       ))}
