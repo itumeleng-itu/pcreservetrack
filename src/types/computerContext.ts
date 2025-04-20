@@ -5,7 +5,7 @@ export interface ComputerContextType {
   computers: Computer[];
   reserveComputer: (computerId: string, hours: number) => void;
   releaseComputer: (computerId: string) => void;
-  reportFault: (computerId: string, description: string) => void;
+  reportFault: (computerId: string, description: string, isEmergency: boolean) => void;
   fixComputer: (computerId: string) => void;
   getAvailableComputers: () => Computer[];
   getReservedComputers: () => Computer[];
