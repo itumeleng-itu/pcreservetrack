@@ -30,7 +30,7 @@ export function ComputerGrid({ computers, emptyMessage = "No computers available
   });
 
   return (
-    <div className="space-y-12 px-6">
+    <div className="space-y-12">
       {Object.entries(computersByLocation).map(([location, locationComputers]) => (
         <div key={location} className="space-y-6">
           <div className="flex items-center space-x-4">
@@ -66,9 +66,9 @@ export function ComputerGrid({ computers, emptyMessage = "No computers available
                       </div>
                       <div className="flex space-x-8">
                         {/* Left side computers */}
-                        <div className="grid grid-cols-8 gap-4 bg-gray-100 p-4 rounded-lg flex-1">
+                        <div className="flex space-x-2 bg-gray-100 p-4 rounded-lg">
                           {firstHalf.map((computer) => (
-                            <div key={computer.id} className="w-full aspect-[4/3]">
+                            <div key={computer.id} className="w-[180px]">
                               <ComputerCard computer={computer} />
                             </div>
                           ))}
@@ -80,9 +80,9 @@ export function ComputerGrid({ computers, emptyMessage = "No computers available
                         </div>
                         
                         {/* Right side computers */}
-                        <div className="grid grid-cols-8 gap-4 bg-gray-100 p-4 rounded-lg flex-1">
+                        <div className="flex space-x-2 bg-gray-100 p-4 rounded-lg">
                           {secondHalf.map((computer) => (
-                            <div key={computer.id} className="w-full aspect-[4/3]">
+                            <div key={computer.id} className="w-[180px]">
                               <ComputerCard computer={computer} />
                             </div>
                           ))}

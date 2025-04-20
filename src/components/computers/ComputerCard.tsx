@@ -36,18 +36,18 @@ export function ComputerCard({ computer }: ComputerCardProps) {
   const isReservedByCurrentUser = computer.reservedBy === currentUser?.id;
 
   return (
-    <Card className="w-full h-full bg-white shadow-sm hover:shadow-md transition-shadow">
+    <Card className="w-full">
       <ComputerCardHeader computer={computer} />
-      <CardContent className="p-4">
+      <CardContent>
         {computer.isEmergency && (
-          <Badge variant="destructive" className="mb-2">Emergency</Badge>
+          <Badge className="mb-2" variant="destructive">Emergency</Badge>
         )}
         <ComputerSpecs 
           computer={computer} 
           isCurrentUser={isReservedByCurrentUser} 
         />
       </CardContent>
-      <CardFooter className="p-4 pt-0">
+      <CardFooter className="flex justify-between">
         <ComputerCardActions
           computer={computer}
           currentUser={currentUser}
