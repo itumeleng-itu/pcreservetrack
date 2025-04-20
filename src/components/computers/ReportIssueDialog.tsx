@@ -4,18 +4,21 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface ReportIssueDialogProps {
-  onReportIssue: (description: string) => void;
+  onReportIssue: (description: string, isEmergency: boolean) => void;
 }
 
 export function ReportIssueDialog({ onReportIssue }: ReportIssueDialogProps) {
   const [faultDescription, setFaultDescription] = useState("");
+  const [isEmergency, setIsEmergency] = useState(false);
   
   const handleReportFault = () => {
     if (faultDescription.trim()) {
-      onReportIssue(faultDescription);
+      onReportIssue(faultDescription, isEmergency);
       setFaultDescription("");
+      setIsEmergency(false);
     }
   };
 
@@ -40,6 +43,16 @@ export function ReportIssueDialog({ onReportIssue }: ReportIssueDialogProps) {
               value={faultDescription}
               onChange={(e) => setFaultDescription(e.target.value)}
             />
+          </div>
+          <div className="flex items-center space-x-2">
+            <Checkbox 
+              id="emergency" 
+              checked={isEmergency} 
+              onCheckedChange={(checked) => setIsEmergency(checked === true)}
+            />
+            <Label htmlFor="emergency" className="text-sm font-medium">
+              This is an emergency
+            </Label>
           </div>
         </div>
         <DialogFooter>

@@ -7,12 +7,18 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/context/AuthContext";
 import { Computer } from "@/types";
+import { isWithinBookingHours, getBookingHoursMessage } from "@/utils/computerUtils";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { Clock } from "lucide-react";
 
 export function StudentDashboard() {
   const { computers } = useComputers();
   const { currentUser } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [locationFilter, setLocationFilter] = useState("all");
+  
+  const bookingAvailable = isWithinBookingHours();
+  const bookingMessage = getBookingHoursMessage();
   
   const availableComputers = computers.filter(c => c.status === "available");
   
@@ -40,6 +46,14 @@ export function StudentDashboard() {
         <h2 className="text-2xl font-bold tracking-tight">Student Dashboard</h2>
         <p className="text-muted-foreground">Reserve computers or manage your reservations.</p>
       </div>
+      
+      <Alert className={bookingAvailable ? "bg-green-50" : "bg-amber-50"}>
+        <Clock className="h-4 w-4" />
+        <AlertTitle>{bookingAvailable ? "Booking is Available" : "Booking is Unavailable"}</AlertTitle>
+        <AlertDescription>
+          {bookingMessage}
+        </AlertDescription>
+      </Alert>
       
       <Tabs defaultValue="available" className="space-y-4">
         <TabsList>

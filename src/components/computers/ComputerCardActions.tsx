@@ -11,7 +11,7 @@ interface ComputerCardActionsProps {
   currentUser: User | null;
   onReserve: (hours: number) => void;
   onRelease: () => void;
-  onReportFault: (description: string) => void;
+  onReportFault: (description: string, isEmergency: boolean) => void;
   onFix: () => void;
 }
 

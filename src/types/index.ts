@@ -1,3 +1,4 @@
+
 export type UserRole = "student" | "admin" | "technician";
 
 export interface User {
@@ -20,6 +21,7 @@ export interface Computer {
   reservedBy?: string;
   reservedUntil?: Date;
   faultDescription?: string;
+  isEmergency?: boolean;
   lastSeen?: Date;
   ipAddress?: string;
   macAddress?: string;

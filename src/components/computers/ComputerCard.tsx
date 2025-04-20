@@ -7,6 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 import { ComputerCardHeader } from "./ComputerCardHeader";
 import { ComputerSpecs } from "./ComputerSpecs";
 import { ComputerCardActions } from "./ComputerCardActions";
+import { Badge } from "@/components/ui/badge";
 
 interface ComputerCardProps {
   computer: Computer;
@@ -24,8 +25,8 @@ export function ComputerCard({ computer }: ComputerCardProps) {
     releaseComputer(computer.id);
   };
 
-  const handleReportFault = (description: string) => {
-    reportFault(computer.id, description);
+  const handleReportFault = (description: string, isEmergency: boolean) => {
+    reportFault(computer.id, description, isEmergency);
   };
 
   const handleFix = () => {
@@ -38,6 +39,9 @@ export function ComputerCard({ computer }: ComputerCardProps) {
     <Card className="w-full">
       <ComputerCardHeader computer={computer} />
       <CardContent>
+        {computer.isEmergency && (
+          <Badge className="mb-2" variant="destructive">Emergency</Badge>
+        )}
         <ComputerSpecs 
           computer={computer} 
           isCurrentUser={isReservedByCurrentUser} 
