@@ -8,9 +8,47 @@ export const useAuthActions = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
+  // Helper to get device ID
+  const getDeviceId = (): string => {
+    let deviceId = localStorage.getItem('device_id');
+    if (!deviceId) {
+      deviceId = crypto.randomUUID();
+      localStorage.setItem('device_id', deviceId);
+    }
+    return deviceId;
+  };
+
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
       setIsLoading(true);
+      
+      // Check if the user is already logged in on another device
+      const { data: existingSession } = await supabase
+        .from('user_sessions')
+        .select('*')
+        .eq('email', email)
+        .single();
+
+      if (existingSession) {
+        const deviceId = getDeviceId();
+        
+        // If session exists but on a different device
+        if (existingSession.device_id !== deviceId) {
+          // Check if session is recent (within last 10 minutes)
+          const lastActive = new Date(existingSession.last_active);
+          const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
+          
+          if (lastActive > tenMinutesAgo) {
+            toast({
+              title: "Account already in use",
+              description: "This account is currently being used on another device.",
+              variant: "destructive",
+            });
+            return false;
+          }
+        }
+      }
+
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
@@ -26,6 +64,9 @@ export const useAuthActions = () => {
       }
 
       if (data.user) {
+        // Update session information in the database
+        await updateUserSession(email);
+        
         toast({
           title: "Login successful",
           description: "Welcome back!",
@@ -43,6 +84,23 @@ export const useAuthActions = () => {
       return false;
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Update user session information
+  const updateUserSession = async (email: string) => {
+    const deviceId = getDeviceId();
+    
+    try {
+      await supabase.from('user_sessions').upsert({
+        email,
+        device_id: deviceId,
+        last_active: new Date().toISOString()
+      }, { 
+        onConflict: 'email'
+      });
+    } catch (error) {
+      console.error("Failed to update session:", error);
     }
   };
 
@@ -98,6 +156,15 @@ export const useAuthActions = () => {
           return false;
         }
 
+        // Initialize session tracking for the new user
+        const deviceId = getDeviceId();
+        await supabase.from('user_sessions').insert({
+          user_id: authData.user.id,
+          email,
+          device_id: deviceId,
+          last_active: new Date().toISOString()
+        });
+
         toast({
           title: "Registration successful",
           description: "Your account has been created",
@@ -121,6 +188,18 @@ export const useAuthActions = () => {
   const logout = async () => {
     try {
       setIsLoading(true);
+      
+      // Clear the user session record first
+      if (supabase.auth.getUser) {
+        const { data } = await supabase.auth.getUser();
+        if (data?.user) {
+          await supabase
+            .from('user_sessions')
+            .delete()
+            .eq('user_id', data.user.id);
+        }
+      }
+      
       const { error } = await supabase.auth.signOut();
       
       if (error) {

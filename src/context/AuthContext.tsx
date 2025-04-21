@@ -18,10 +18,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     // First set up the auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, currentSession) => {
+      async (event, currentSession) => {
         setSession(currentSession);
         
         if (currentSession?.user) {
+          // Update device session in database to track active logins
+          const deviceId = getDeviceId();
+          await updateUserSession(currentSession.user.id, deviceId);
+          
           // Get user profile from registered table
           setTimeout(() => {
             fetchUserProfile(currentSession.user.id);
@@ -34,10 +38,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     );
 
     // Check for existing session
-    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+    supabase.auth.getSession().then(async ({ data: { session: currentSession } }) => {
       setSession(currentSession);
       
       if (currentSession?.user) {
+        // Update device session in database
+        const deviceId = getDeviceId();
+        await updateUserSession(currentSession.user.id, deviceId);
+        
         fetchUserProfile(currentSession.user.id);
       } else {
         setIsLoading(false);
@@ -48,6 +56,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       subscription.unsubscribe();
     };
   }, []);
+
+  // Generate a unique device ID
+  const getDeviceId = (): string => {
+    let deviceId = localStorage.getItem('device_id');
+    if (!deviceId) {
+      deviceId = crypto.randomUUID();
+      localStorage.setItem('device_id', deviceId);
+    }
+    return deviceId;
+  };
+
+  // Update user's active session in database
+  const updateUserSession = async (userId: string, deviceId: string) => {
+    try {
+      await supabase
+        .from('user_sessions')
+        .upsert({ 
+          user_id: userId, 
+          device_id: deviceId,
+          last_active: new Date().toISOString()
+        }, { 
+          onConflict: 'user_id' 
+        });
+    } catch (error) {
+      console.error("Failed to update user session:", error);
+    }
+  };
 
   const fetchUserProfile = async (userId: string) => {
     try {
