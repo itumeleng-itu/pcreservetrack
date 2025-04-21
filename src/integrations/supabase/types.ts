@@ -245,7 +245,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      reserve_computer: {
+        Args: {
+          p_computer_id: number
+          p_user_id: string
+          p_reserved_until: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
