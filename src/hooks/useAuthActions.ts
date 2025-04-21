@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -8,7 +7,6 @@ export const useAuthActions = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  // Helper to get device ID
   const getDeviceId = (): string => {
     let deviceId = localStorage.getItem('device_id');
     if (!deviceId) {
@@ -22,25 +20,22 @@ export const useAuthActions = () => {
     try {
       setIsLoading(true);
       
-      // Check if the user is already logged in on another device
-      const { data: existingSession } = await supabase
+      const { data: existingSessions } = await supabase
         .from('user_sessions')
         .select('*')
         .eq('email', email)
         .single();
 
-      if (existingSession) {
+      if (existingSessions) {
         const deviceId = getDeviceId();
         
-        // If session exists but on a different device
-        if (existingSession.device_id !== deviceId) {
-          // Check if session is recent (within last 10 minutes)
-          const lastActive = new Date(existingSession.last_active);
+        if (existingSessions.device_id !== deviceId) {
+          const lastActive = new Date(existingSessions.last_active);
           const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
           
           if (lastActive > tenMinutesAgo) {
             toast({
-              title: "Account already in use",
+              title: "Account in use",
               description: "This account is currently being used on another device.",
               variant: "destructive",
             });
@@ -64,15 +59,25 @@ export const useAuthActions = () => {
       }
 
       if (data.user) {
-        // Update session information in the database
-        await updateUserSession(email);
+        const deviceId = getDeviceId();
         
+        await supabase.from('user_sessions')
+          .upsert({
+            user_id: data.user.id,
+            email: data.user.email,
+            device_id: deviceId,
+            last_active: new Date().toISOString()
+          }, {
+            onConflict: 'email'
+          });
+
         toast({
           title: "Login successful",
           description: "Welcome back!",
         });
         return true;
       }
+
       return false;
     } catch (error) {
       console.error("Login error:", error);
@@ -84,23 +89,6 @@ export const useAuthActions = () => {
       return false;
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  // Update user session information
-  const updateUserSession = async (email: string) => {
-    const deviceId = getDeviceId();
-    
-    try {
-      await supabase.from('user_sessions').upsert({
-        email,
-        device_id: deviceId,
-        last_active: new Date().toISOString()
-      }, { 
-        onConflict: 'email'
-      });
-    } catch (error) {
-      console.error("Failed to update session:", error);
     }
   };
 
@@ -156,7 +144,6 @@ export const useAuthActions = () => {
           return false;
         }
 
-        // Initialize session tracking for the new user
         const deviceId = getDeviceId();
         await supabase.from('user_sessions').insert({
           user_id: authData.user.id,
@@ -189,15 +176,13 @@ export const useAuthActions = () => {
     try {
       setIsLoading(true);
       
-      // Clear the user session record first
-      if (supabase.auth.getUser) {
-        const { data } = await supabase.auth.getUser();
-        if (data?.user) {
-          await supabase
-            .from('user_sessions')
-            .delete()
-            .eq('user_id', data.user.id);
-        }
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user) {
+        await supabase
+          .from('user_sessions')
+          .delete()
+          .match({ user_id: user.id });
       }
       
       const { error } = await supabase.auth.signOut();
