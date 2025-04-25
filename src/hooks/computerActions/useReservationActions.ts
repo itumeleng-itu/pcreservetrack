@@ -68,9 +68,20 @@ export const useReservationActions = (computers: Computer[], setComputers: (cb: 
       const reservedUntil = new Date();
       reservedUntil.setHours(reservedUntil.getHours() + hours);
 
-      // Make sure we're passing the correct data types to the Supabase function
-      const numericComputerId = parseInt(computerId);
+      // Make sure the computerId is properly converted to a number and isn't NaN
+      const numericComputerId = Number(computerId);
       
+      // Validate that we have a valid number before proceeding
+      if (isNaN(numericComputerId)) {
+        console.error('Invalid computer ID:', computerId);
+        toast({
+          title: "Reservation failed",
+          description: "Invalid computer identifier",
+          variant: "destructive",
+        });
+        return;
+      }
+
       // First check if the computer is still available
       const { data: computerData, error: checkError } = await supabase
         .from('computers')
@@ -80,7 +91,12 @@ export const useReservationActions = (computers: Computer[], setComputers: (cb: 
       
       if (checkError) {
         console.error('Computer check error:', checkError);
-        throw checkError;
+        toast({
+          title: "Reservation failed",
+          description: "Error checking computer availability",
+          variant: "destructive",
+        });
+        return;
       }
       
       if (!computerData || computerData.status !== 'available') {
@@ -104,7 +120,12 @@ export const useReservationActions = (computers: Computer[], setComputers: (cb: 
 
       if (error) {
         console.error('Reservation error:', error);
-        throw error;
+        toast({
+          title: "Reservation failed",
+          description: "An error occurred: " + error.message,
+          variant: "destructive",
+        });
+        return;
       }
 
       // Check if the reservation was successful
@@ -156,8 +177,19 @@ export const useReservationActions = (computers: Computer[], setComputers: (cb: 
     }
 
     try {
-      // Make sure we're passing a numeric ID
-      const numericComputerId = parseInt(computerId);
+      // Make sure we're passing a valid numeric ID and it's not NaN
+      const numericComputerId = Number(computerId);
+      
+      // Validate that we have a valid number before proceeding
+      if (isNaN(numericComputerId)) {
+        console.error('Invalid computer ID:', computerId);
+        toast({
+          title: "Release failed",
+          description: "Invalid computer identifier",
+          variant: "destructive",
+        });
+        return;
+      }
       
       // Update the computer status in Supabase
       const { error } = await supabase
@@ -171,7 +203,12 @@ export const useReservationActions = (computers: Computer[], setComputers: (cb: 
 
       if (error) {
         console.error('Release error:', error);
-        throw error;
+        toast({
+          title: "Release failed",
+          description: "An error occurred: " + error.message,
+          variant: "destructive",
+        });
+        return;
       }
 
       // Update local state
