@@ -68,6 +68,7 @@ export const useReservationActions = (computers: Computer[], setComputers: (cb: 
       const reservedUntil = new Date();
       reservedUntil.setHours(reservedUntil.getHours() + hours);
 
+      // Call the reserve_computer function in Supabase
       const { data: success, error } = await supabase.rpc(
         'reserve_computer',
         {
@@ -78,37 +79,38 @@ export const useReservationActions = (computers: Computer[], setComputers: (cb: 
       );
 
       if (error) {
+        console.error('Reservation error:', error);
         throw error;
       }
 
-      if (!success) {
+      // Check if the reservation was successful
+      if (success === true) {
+        // Update local state only if the database update was successful
+        setComputers(prevComputers =>
+          prevComputers.map(computer => {
+            if (computer.id === computerId) {
+              return {
+                ...computer,
+                status: "reserved" as ComputerStatus,
+                reservedBy: currentUser.id,
+                reservedUntil: reservedUntil
+              };
+            }
+            return computer;
+          })
+        );
+
+        toast({
+          title: "Computer reserved",
+          description: `You have reserved a computer for ${hours} hour${hours > 1 ? 's' : ''}`,
+        });
+      } else {
         toast({
           title: "Reservation failed",
           description: "This computer is no longer available",
           variant: "destructive",
         });
-        return;
       }
-
-      setComputers(prevComputers =>
-        prevComputers.map(computer => {
-          if (computer.id === computerId) {
-            return {
-              ...computer,
-              status: "reserved" as ComputerStatus,
-              reservedBy: currentUser.id,
-              reservedUntil: reservedUntil
-            };
-          }
-          return computer;
-        })
-      );
-
-      toast({
-        title: "Computer reserved",
-        description: `You have reserved a computer for ${hours} hour${hours > 1 ? 's' : ''}`,
-      });
-
     } catch (error) {
       console.error('Reservation error:', error);
       toast({
@@ -119,28 +121,63 @@ export const useReservationActions = (computers: Computer[], setComputers: (cb: 
     }
   };
 
-  const releaseComputer = (computerId: string) => {
-    setComputers(prevComputers => prevComputers.map(computer => {
-      if (computer.id === computerId && computer.status === "reserved") {
-        const reservation = mockReservations.find(
-          r => r.computerId === computerId && r.status === "active"
-        );
-        if (reservation) {
-          reservation.status = "completed";
-        }
-        return {
-          ...computer,
-          status: "available" as ComputerStatus,
-          reservedBy: undefined,
-          reservedUntil: undefined,
-        };
+  const releaseComputer = async (computerId: string) => {
+    if (!currentUser) {
+      toast({
+        title: "Authentication required",
+        description: "Please login to release a computer",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // Update the computer status in Supabase
+      const { error } = await supabase
+        .from('computers')
+        .update({
+          status: 'available',
+          reserved_by: null,
+          reserved_until: null
+        })
+        .eq('id', parseInt(computerId));
+
+      if (error) {
+        console.error('Release error:', error);
+        throw error;
       }
-      return computer;
-    }));
-    toast({
-      title: "Computer released",
-      description: "The computer is now available for other users",
-    });
+
+      // Update local state
+      setComputers(prevComputers => prevComputers.map(computer => {
+        if (computer.id === computerId && computer.status === "reserved") {
+          const reservation = mockReservations.find(
+            r => r.computerId === computerId && r.status === "active"
+          );
+          if (reservation) {
+            reservation.status = "completed";
+          }
+          return {
+            ...computer,
+            status: "available" as ComputerStatus,
+            reservedBy: undefined,
+            reservedUntil: undefined,
+          };
+        }
+        return computer;
+      }));
+      
+      toast({
+        title: "Computer released",
+        description: "The computer is now available for other users",
+      });
+    } catch (error) {
+      console.error('Release error:', error);
+      toast({
+        title: "Release failed",
+        description: "An error occurred while trying to release the computer",
+        variant: "destructive",
+      });
+    }
   };
 
   const checkExpiredReservations = () => {
