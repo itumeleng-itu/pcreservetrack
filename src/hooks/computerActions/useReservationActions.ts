@@ -4,7 +4,6 @@ import { mockReservations } from "@/services/mockData";
 import { isWithinBookingHours, getBookingHoursMessage } from "@/utils/computerUtils";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
 
 export const useReservationActions = (computers: Computer[], setComputers: (cb: (prev: Computer[]) => Computer[]) => void) => {
   const { toast } = useToast();
@@ -26,7 +25,7 @@ export const useReservationActions = (computers: Computer[], setComputers: (cb: 
     );
   };
 
-  const reserveComputer = async (computerId: string, hours: number) => {
+  const reserveComputer = (computerId: string, hours: number) => {
     if (!currentUser) {
       toast({
         title: "Authentication required",
@@ -46,10 +45,10 @@ export const useReservationActions = (computers: Computer[], setComputers: (cb: 
     }
 
     const computerToReserve = computers.find(c => c.id === computerId);
-    if (!computerToReserve) {
+    if (!computerToReserve || computerToReserve.status !== "available") {
       toast({
         title: "Reservation failed",
-        description: "Computer not found",
+        description: "This computer is no longer available",
         variant: "destructive",
       });
       return;
@@ -64,186 +63,62 @@ export const useReservationActions = (computers: Computer[], setComputers: (cb: 
       return;
     }
 
-    try {
-      const reservedUntil = new Date();
-      reservedUntil.setHours(reservedUntil.getHours() + hours);
+    setComputers(prevComputers =>
+      prevComputers.map(computer => {
+        if (computer.id === computerId && computer.status === "available") {
+          const endTime = new Date();
+          endTime.setHours(endTime.getHours() + hours);
+          const newReservation = {
+            id: String(mockReservations.length + 1),
+            computerId,
+            userId: currentUser.id,
+            startTime: new Date(),
+            endTime,
+            status: "active" as const
+          };
+          mockReservations.push(newReservation);
 
-      // Make sure the computerId is properly converted to a number and isn't NaN
-      const numericComputerId = Number(computerId);
-      
-      // Validate that we have a valid number before proceeding
-      if (isNaN(numericComputerId)) {
-        console.error('Invalid computer ID:', computerId);
-        toast({
-          title: "Reservation failed",
-          description: "Invalid computer identifier",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // First check if the computer is still available
-      const { data: computerData, error: checkError } = await supabase
-        .from('computers')
-        .select('status')
-        .eq('id', numericComputerId)
-        .single();
-      
-      if (checkError) {
-        console.error('Computer check error:', checkError);
-        toast({
-          title: "Reservation failed",
-          description: "Error checking computer availability",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      if (!computerData || computerData.status !== 'available') {
-        toast({
-          title: "Reservation failed",
-          description: "This computer is no longer available",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      // Now call the reserve_computer function
-      const { data, error } = await supabase.rpc(
-        'reserve_computer',
-        {
-          p_computer_id: numericComputerId,
-          p_user_id: currentUser.id,
-          p_reserved_until: reservedUntil.toISOString()
-        }
-      );
-
-      if (error) {
-        console.error('Reservation error:', error);
-        toast({
-          title: "Reservation failed",
-          description: "An error occurred: " + error.message,
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Check if the reservation was successful
-      if (data === true) {
-        // Update local state only if the database update was successful
-        setComputers(prevComputers =>
-          prevComputers.map(computer => {
-            if (computer.id === computerId) {
-              return {
-                ...computer,
-                status: "reserved" as ComputerStatus,
-                reservedBy: currentUser.id,
-                reservedUntil: reservedUntil
-              };
-            }
-            return computer;
-          })
-        );
-
-        toast({
-          title: "Computer reserved",
-          description: `You have reserved a computer for ${hours} hour${hours > 1 ? 's' : ''}`,
-        });
-      } else {
-        toast({
-          title: "Reservation failed",
-          description: "Failed to reserve the computer. Please try again.",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error('Reservation error:', error);
-      toast({
-        title: "Reservation failed",
-        description: "An error occurred while trying to reserve the computer",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const releaseComputer = async (computerId: string) => {
-    if (!currentUser) {
-      toast({
-        title: "Authentication required",
-        description: "Please login to release a computer",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      // Make sure we're passing a valid numeric ID and it's not NaN
-      const numericComputerId = Number(computerId);
-      
-      // Validate that we have a valid number before proceeding
-      if (isNaN(numericComputerId)) {
-        console.error('Invalid computer ID:', computerId);
-        toast({
-          title: "Release failed",
-          description: "Invalid computer identifier",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      // Update the computer status in Supabase
-      const { error } = await supabase
-        .from('computers')
-        .update({
-          status: 'available',
-          reserved_by: null,
-          reserved_until: null
-        })
-        .eq('id', numericComputerId);
-
-      if (error) {
-        console.error('Release error:', error);
-        toast({
-          title: "Release failed",
-          description: "An error occurred: " + error.message,
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Update local state
-      setComputers(prevComputers => prevComputers.map(computer => {
-        if (computer.id === computerId && computer.status === "reserved") {
-          const reservation = mockReservations.find(
-            r => r.computerId === computerId && r.status === "active"
-          );
-          if (reservation) {
-            reservation.status = "completed";
-          }
           return {
             ...computer,
-            status: "available" as ComputerStatus,
-            reservedBy: undefined,
-            reservedUntil: undefined,
+            status: "reserved" as ComputerStatus,
+            reservedBy: currentUser.id,
+            reservedUntil: endTime
           };
         }
         return computer;
-      }));
-      
-      toast({
-        title: "Computer released",
-        description: "The computer is now available for other users",
-      });
-    } catch (error) {
-      console.error('Release error:', error);
-      toast({
-        title: "Release failed",
-        description: "An error occurred while trying to release the computer",
-        variant: "destructive",
-      });
-    }
+      })
+    );
+    toast({
+      title: "Computer reserved",
+      description: `You have reserved a computer for ${hours} hour${hours > 1 ? 's' : ''}`,
+    });
   };
 
+  const releaseComputer = (computerId: string) => {
+    setComputers(prevComputers => prevComputers.map(computer => {
+      if (computer.id === computerId && computer.status === "reserved") {
+        const reservation = mockReservations.find(
+          r => r.computerId === computerId && r.status === "active"
+        );
+        if (reservation) {
+          reservation.status = "completed";
+        }
+        return {
+          ...computer,
+          status: "available" as ComputerStatus,
+          reservedBy: undefined,
+          reservedUntil: undefined,
+        };
+      }
+      return computer;
+    }));
+    toast({
+      title: "Computer released",
+      description: "The computer is now available for other users",
+    });
+  };
+
+  // Expiry logic, runs every minute
   const checkExpiredReservations = () => {
     const now = new Date();
     const expired = computers.some(
