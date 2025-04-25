@@ -17,6 +17,8 @@ export type Database = {
           last_maintenance: string | null
           location: string | null
           name: string
+          reserved_by: string | null
+          reserved_until: string | null
           specs: Json | null
           status: string
           updated_at: string | null
@@ -28,6 +30,8 @@ export type Database = {
           last_maintenance?: string | null
           location?: string | null
           name: string
+          reserved_by?: string | null
+          reserved_until?: string | null
           specs?: Json | null
           status?: string
           updated_at?: string | null
@@ -39,6 +43,8 @@ export type Database = {
           last_maintenance?: string | null
           location?: string | null
           name?: string
+          reserved_by?: string | null
+          reserved_until?: string | null
           specs?: Json | null
           status?: string
           updated_at?: string | null
