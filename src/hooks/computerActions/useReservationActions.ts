@@ -68,11 +68,35 @@ export const useReservationActions = (computers: Computer[], setComputers: (cb: 
       const reservedUntil = new Date();
       reservedUntil.setHours(reservedUntil.getHours() + hours);
 
-      // Call the reserve_computer function in Supabase
-      const { data: success, error } = await supabase.rpc(
+      // Make sure we're passing the correct data types to the Supabase function
+      const numericComputerId = parseInt(computerId);
+      
+      // First check if the computer is still available
+      const { data: computerData, error: checkError } = await supabase
+        .from('computers')
+        .select('status')
+        .eq('id', numericComputerId)
+        .single();
+      
+      if (checkError) {
+        console.error('Computer check error:', checkError);
+        throw checkError;
+      }
+      
+      if (!computerData || computerData.status !== 'available') {
+        toast({
+          title: "Reservation failed",
+          description: "This computer is no longer available",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Now call the reserve_computer function
+      const { data, error } = await supabase.rpc(
         'reserve_computer',
         {
-          p_computer_id: parseInt(computerId),
+          p_computer_id: numericComputerId,
           p_user_id: currentUser.id,
           p_reserved_until: reservedUntil.toISOString()
         }
@@ -84,7 +108,7 @@ export const useReservationActions = (computers: Computer[], setComputers: (cb: 
       }
 
       // Check if the reservation was successful
-      if (success === true) {
+      if (data === true) {
         // Update local state only if the database update was successful
         setComputers(prevComputers =>
           prevComputers.map(computer => {
@@ -107,7 +131,7 @@ export const useReservationActions = (computers: Computer[], setComputers: (cb: 
       } else {
         toast({
           title: "Reservation failed",
-          description: "This computer is no longer available",
+          description: "Failed to reserve the computer. Please try again.",
           variant: "destructive",
         });
       }
@@ -132,6 +156,9 @@ export const useReservationActions = (computers: Computer[], setComputers: (cb: 
     }
 
     try {
+      // Make sure we're passing a numeric ID
+      const numericComputerId = parseInt(computerId);
+      
       // Update the computer status in Supabase
       const { error } = await supabase
         .from('computers')
@@ -140,7 +167,7 @@ export const useReservationActions = (computers: Computer[], setComputers: (cb: 
           reserved_by: null,
           reserved_until: null
         })
-        .eq('id', parseInt(computerId));
+        .eq('id', numericComputerId);
 
       if (error) {
         console.error('Release error:', error);
