@@ -19,34 +19,32 @@ export const useAuthActions = () => {
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
       setIsLoading(true);
-      
+
       const { data: existingSessions } = await supabase
         .from('user_sessions')
         .select('*')
         .eq('email', email)
         .single();
 
-      if (existingSessions) {
-        const deviceId = getDeviceId();
-        
-        if (existingSessions.device_id !== deviceId) {
-          const lastActive = new Date(existingSessions.last_active);
-          const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
-          
-          if (lastActive > tenMinutesAgo) {
-            toast({
-              title: "Account in use",
-              description: "This account is currently being used on another device.",
-              variant: "destructive",
-            });
-            return false;
-          }
+      const deviceId = getDeviceId();
+
+      if (existingSessions && existingSessions.device_id !== deviceId) {
+        const lastActive = new Date(existingSessions.last_active);
+        const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
+
+        if (lastActive > tenMinutesAgo) {
+          toast({
+            title: "Account in use",
+            description: "This account is currently being used on another device.",
+            variant: "destructive",
+          });
+          return false;
         }
       }
 
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
-        password
+        password,
       });
 
       if (error) {
@@ -59,17 +57,12 @@ export const useAuthActions = () => {
       }
 
       if (data.user) {
-        const deviceId = getDeviceId();
-        
-        await supabase.from('user_sessions')
-          .upsert({
-            user_id: data.user.id,
-            email: data.user.email,
-            device_id: deviceId,
-            last_active: new Date().toISOString()
-          }, {
-            onConflict: 'email'
-          });
+        await supabase.from('user_sessions').upsert({
+          user_id: data.user.id,
+          email: data.user.email,
+          device_id: deviceId,
+          last_active: new Date().toISOString(),
+        }, { onConflict: 'email' });
 
         toast({
           title: "Login successful",
