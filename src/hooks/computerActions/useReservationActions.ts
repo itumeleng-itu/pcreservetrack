@@ -14,7 +14,9 @@ export const useReservationActions = (computers: Computer[], setComputers: (cb: 
   };
 
   const getReservedComputers = () => {
-    return computers.filter(c => c.status === "reserved");
+    return computers.filter(c => 
+      c.status === "reserved" && c.reservedBy === currentUser?.id
+    );
   };
 
   const hasActiveReservation = (userId: string) => {

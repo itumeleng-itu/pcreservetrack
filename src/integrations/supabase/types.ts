@@ -17,6 +17,8 @@ export type Database = {
           last_maintenance: string | null
           location: string | null
           name: string
+          reserved_by: string | null
+          reserved_until: string | null
           specs: Json | null
           status: string
           updated_at: string | null
@@ -28,6 +30,8 @@ export type Database = {
           last_maintenance?: string | null
           location?: string | null
           name: string
+          reserved_by?: string | null
+          reserved_until?: string | null
           specs?: Json | null
           status?: string
           updated_at?: string | null
@@ -39,6 +43,8 @@ export type Database = {
           last_maintenance?: string | null
           location?: string | null
           name?: string
+          reserved_by?: string | null
+          reserved_until?: string | null
           specs?: Json | null
           status?: string
           updated_at?: string | null
@@ -245,7 +251,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      reserve_computer: {
+        Args: {
+          p_computer_id: number
+          p_user_id: string
+          p_reserved_until: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
