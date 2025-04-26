@@ -19,10 +19,29 @@ export function ComputerGrid({ computers, emptyMessage = "No computers available
     );
   }
 
+  // Split computers into rows of 8
+  const rows = [];
+  for (let i = 0; i < computers.length; i += 8) {
+    rows.push(computers.slice(i, i + 8));
+  }
+
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-      {computers.map((computer) => (
-        <ComputerCard key={computer.id} computer={computer} />
+    <div className="space-y-8">
+      {rows.map((row, rowIndex) => (
+        <div key={rowIndex} className="grid grid-cols-9 gap-4 items-center">
+          {/* Left side: 4 computers */}
+          {row.slice(0, 4).map((computer) => (
+            <ComputerCard key={computer.id} computer={computer} />
+          ))}
+
+          {/* Aisle space */}
+          <div className="col-span-1"></div>
+
+          {/* Right side: 4 computers */}
+          {row.slice(4).map((computer) => (
+            <ComputerCard key={computer.id} computer={computer} />
+          ))}
+        </div>
       ))}
     </div>
   );
