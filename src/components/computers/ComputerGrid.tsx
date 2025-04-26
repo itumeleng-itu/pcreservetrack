@@ -39,12 +39,6 @@ export function ComputerGrid({ computers, emptyMessage = "No computers available
               ({locationComputers.length} computers)
             </div>
           </div>
-          
-          <div className="relative">
-            {/* Left entrance indicator */}
-            <div className="absolute -left-24 top-1/2 -translate-y-1/2 bg-cyan-500 h-32 w-20 flex items-center justify-center text-white font-medium rounded-l-lg">
-              Entrance
-            </div>
             
             <div className="space-y-8">
               {/* Split into rows of 8 computers (4 on each side) */}
