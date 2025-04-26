@@ -7,6 +7,7 @@ import { useComputerActions } from "../hooks/useComputerActions";
 const ComputerContext = createContext<ComputerContextType | undefined>(undefined);
 
 export const ComputerProvider = ({ children }: { children: ReactNode }) => {
+  // This will now generate 80 computers instead of 200
   const initialComputers = generateExtendedComputers();
   
   const {
