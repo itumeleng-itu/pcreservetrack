@@ -4,9 +4,6 @@ import { Computer, ComputerStatus } from "@/types";
 
 export const useComputerState = (initialComputers: Computer[]) => {
   const [computers, setComputers] = useState<Computer[]>(() => {
-    // Clear existing stored computers to ensure we get the new count of 80
-    localStorage.removeItem("pcReserveTrack_computers");
-    
     const savedComputers = localStorage.getItem("pcReserveTrack_computers");
     if (savedComputers) {
       try {
