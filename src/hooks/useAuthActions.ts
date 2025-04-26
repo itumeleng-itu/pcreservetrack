@@ -204,10 +204,44 @@ export const useAuthActions = () => {
     }
   };
 
+  const resetPassword = async (email: string): Promise<void> => {
+    try {
+      setIsLoading(true);
+
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+
+      if (error) {
+        toast({
+          title: "Reset failed",
+          description: error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: "Reset email sent",
+        description: "Check your email for a password reset link.",
+      });
+    } catch (error) {
+      console.error("Reset password error:", error);
+      toast({
+        title: "Reset failed",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return {
     login,
     register,
     logout,
+    resetPassword,
     isLoading,
   };
 };

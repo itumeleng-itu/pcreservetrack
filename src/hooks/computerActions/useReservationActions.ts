@@ -1,4 +1,3 @@
-
 import { Computer, ComputerStatus } from "@/types";
 import { mockReservations } from "@/services/mockData";
 import { isWithinBookingHours, getBookingHoursMessage } from "@/utils/computerUtils";
@@ -70,26 +69,18 @@ export const useReservationActions = (computers: Computer[], setComputers: (cb: 
         if (computer.id === computerId && computer.status === "available") {
           const endTime = new Date();
           endTime.setHours(endTime.getHours() + hours);
-          const newReservation = {
-            id: String(mockReservations.length + 1),
-            computerId,
-            userId: currentUser.id,
-            startTime: new Date(),
-            endTime,
-            status: "active" as const
-          };
-          mockReservations.push(newReservation);
 
           return {
             ...computer,
             status: "reserved" as ComputerStatus,
             reservedBy: currentUser.id,
-            reservedUntil: endTime
+            reservedUntil: endTime,
           };
         }
         return computer;
       })
     );
+
     toast({
       title: "Computer reserved",
       description: `You have reserved a computer for ${hours} hour${hours > 1 ? 's' : ''}`,
