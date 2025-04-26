@@ -8,7 +8,7 @@ interface ComputerCardProps {
 
 export function ComputerCard({ computer, onReserve }: ComputerCardProps) {
   return (
-    <div className="flex flex-col justify-between p-4 border rounded-lg shadow-sm bg-white w-full h-48 md:h-56">
+    <div className="flex flex-col justify-between p-4 border rounded-lg shadow-sm bg-white w-full h-40 md:h-48">
       {/* Computer Name and Location */}
       <div>
         <h3 className="text-lg font-semibold text-gray-800 truncate">{computer.name}</h3>
