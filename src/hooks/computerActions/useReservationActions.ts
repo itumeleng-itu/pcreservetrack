@@ -1,3 +1,4 @@
+
 import { Computer, ComputerStatus } from "@/types";
 import { mockReservations } from "@/services/mockData";
 import { isWithinBookingHours, getBookingHoursMessage } from "@/utils/computerUtils";
@@ -64,7 +65,7 @@ export const useReservationActions = (computers: Computer[], setComputers: (cb: 
 
     setComputers(prevComputers =>
       prevComputers.map(computer => {
-        if (computer.id === computerId) {
+        if (computer.id === computerId && computer.status === "available") {
           const endTime = new Date();
           endTime.setHours(endTime.getHours() + hours);
           const newReservation = {
@@ -73,7 +74,7 @@ export const useReservationActions = (computers: Computer[], setComputers: (cb: 
             userId: currentUser.id,
             startTime: new Date(),
             endTime,
-            status: "active" as const,
+            status: "active" as const
           };
           mockReservations.push(newReservation);
 
@@ -81,13 +82,12 @@ export const useReservationActions = (computers: Computer[], setComputers: (cb: 
             ...computer,
             status: "reserved" as ComputerStatus,
             reservedBy: currentUser.id,
-            reservedUntil: endTime,
+            reservedUntil: endTime
           };
         }
         return computer;
       })
     );
-
     toast({
       title: "Computer reserved",
       description: `You have reserved a computer for ${hours} hour${hours > 1 ? 's' : ''}`,
