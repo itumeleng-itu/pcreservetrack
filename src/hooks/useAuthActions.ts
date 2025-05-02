@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -111,6 +112,7 @@ export const useAuthActions = () => {
     try {
       setIsLoading(true);
       
+      // Sign up the user with auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
@@ -133,26 +135,8 @@ export const useAuthActions = () => {
       }
 
       if (authData.user) {
-        const { error: insertError } = await supabase
-          .from('registered')
-          .insert({
-            id: authData.user.id,
-            name,
-            email,
-            role,
-            staff_num: identificationNumber
-          });
-
-        if (insertError) {
-          console.error("Error inserting user data:", insertError);
-          toast({
-            title: "Profile creation failed",
-            description: "Your account was created but profile data could not be saved",
-            variant: "destructive",
-          });
-          return false;
-        }
-
+        // Registration successful - the trigger will create the profile
+        // Store current device as the active session
         const deviceId = getDeviceId();
         await supabase.from('user_sessions').insert({
           user_id: authData.user.id,
@@ -167,6 +151,7 @@ export const useAuthActions = () => {
         });
         return true;
       }
+      
       return false;
     } catch (error) {
       console.error("Registration error:", error);

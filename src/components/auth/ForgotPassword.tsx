@@ -2,29 +2,40 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/context/AuthContext";
-import { Mail, ArrowLeft, Loader2 } from "lucide-react";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { ArrowLeft, Loader2 } from "lucide-react";
+
+const forgotPasswordSchema = z.object({
+  email: z.string().email("Please enter a valid email address")
+});
+
+type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
 
 interface ForgotPasswordProps {
   onBack: () => void;
 }
 
-export function ForgotPassword({ onBack }: ForgotPasswordProps) {
-  const [email, setEmail] = useState("");
+export const ForgotPassword = ({ onBack }: ForgotPasswordProps) => {
   const { resetPassword } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [resetSent, setResetSent] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email) return;
+  const form = useForm<ForgotPasswordFormValues>({
+    resolver: zodResolver(forgotPasswordSchema),
+    defaultValues: {
+      email: ""
+    }
+  });
 
+  const onSubmit = async (data: ForgotPasswordFormValues) => {
     setIsSubmitting(true);
     try {
-      const success = await resetPassword(email);
-      if (success) {
+      const result = await resetPassword(data.email);
+      if (result) {
         setResetSent(true);
       }
     } finally {
@@ -32,78 +43,77 @@ export function ForgotPassword({ onBack }: ForgotPasswordProps) {
     }
   };
 
-  if (resetSent) {
-    return (
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Check your email</CardTitle>
-          <CardDescription>
-            We've sent a password reset link to your email address.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4 text-center">
-          <Mail className="mx-auto h-12 w-12 text-blue-500" />
-          <p>
-            Please check your inbox and follow the instructions to reset your password.
-            If you don't see the email, check your spam folder.
-          </p>
-        </CardContent>
-        <CardFooter>
-          <Button onClick={onBack} variant="outline" className="w-full">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Login
-          </Button>
-        </CardFooter>
-      </Card>
-    );
-  }
-
   return (
-    <Card className="w-full max-w-md">
-      <form onSubmit={handleSubmit}>
-        <CardHeader>
-          <CardTitle>Reset your password</CardTitle>
-          <CardDescription>
-            Enter your email address and we'll send you a link to reset your password.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="m.simpson@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              disabled={isSubmitting}
-            />
-          </div>
-        </CardContent>
-        <CardFooter className="flex flex-col space-y-2">
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
-            {isSubmitting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Sending...
-              </>
-            ) : (
-              "Send Reset Link"
-            )}
-          </Button>
+    <div className="space-y-4">
+      <div className="mb-6">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="mb-2"
+          onClick={onBack}
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to login
+        </Button>
+        <h2 className="text-2xl font-bold">Reset your password</h2>
+        <p className="text-sm text-gray-500 mt-1">
+          Enter your email address and we'll send you a link to reset your password
+        </p>
+      </div>
+
+      {resetSent ? (
+        <div className="text-center p-4 bg-green-50 rounded-lg">
+          <p className="font-medium text-green-600">Password reset link sent!</p>
+          <p className="text-sm text-green-600 mt-1">
+            Please check your email for the password reset link
+          </p>
           <Button 
-            onClick={onBack} 
             variant="outline" 
-            type="button" 
-            className="w-full"
-            disabled={isSubmitting}
+            className="mt-4" 
+            onClick={onBack}
           >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Login
+            Return to login
           </Button>
-        </CardFooter>
-      </form>
-    </Card>
+        </div>
+      ) : (
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="your.email@example.com" 
+                      type="email"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <Button 
+              type="submit" 
+              className="w-full"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Sending reset link...
+                </>
+              ) : (
+                "Send reset link"
+              )}
+            </Button>
+          </form>
+        </Form>
+      )}
+    </div>
   );
-}
+};
