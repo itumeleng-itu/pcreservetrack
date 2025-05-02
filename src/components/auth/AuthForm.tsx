@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,8 @@ import { UserRole } from "@/types";
 import { Loader2, Fingerprint } from "lucide-react";
 import { FingerprintAuth } from "./FingerprintAuth";
 import { Separator } from "@/components/ui/separator";
+import { useSearchParams } from "react-router-dom";
+import { ForgotPassword } from "./ForgotPassword";
 
 export function AuthForm() {
   const { login, register, isLoading } = useAuth();
@@ -21,6 +23,15 @@ export function AuthForm() {
   const [registerPassword, setRegisterPassword] = useState("");
   const [registerRole, setRegisterRole] = useState<UserRole>("student");
   const [identificationNumber, setIdentificationNumber] = useState("");
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [searchParams] = useSearchParams();
+  const isReset = searchParams.get('reset') === 'true';
+
+  useEffect(() => {
+    if (isReset) {
+      // Handle password reset logic if needed
+    }
+  }, [isReset]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,6 +52,10 @@ export function AuthForm() {
       default: return "Identification Number";
     }
   };
+
+  if (showForgotPassword) {
+    return <ForgotPassword onBack={() => setShowForgotPassword(false)} />;
+  }
 
   return (
     <Card className="w-full max-w-md">
@@ -81,6 +96,16 @@ export function AuthForm() {
                   required
                   disabled={isLoading}
                 />
+                <div className="text-right">
+                  <Button 
+                    variant="link" 
+                    className="p-0 h-auto text-sm" 
+                    type="button"
+                    onClick={() => setShowForgotPassword(true)}
+                  >
+                    Forgot password?
+                  </Button>
+                </div>
               </div>
               
               <Button type="submit" className="w-full" disabled={isLoading}>

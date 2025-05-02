@@ -20,26 +20,36 @@ export const useAuthActions = () => {
     try {
       setIsLoading(true);
       
-      const { data: existingSessions } = await supabase
+      // Check if user is already logged in on another device
+      const { data: existingSession, error: sessionError } = await supabase
         .from('user_sessions')
         .select('*')
         .eq('email', email)
         .single();
 
-      if (existingSessions) {
-        const deviceId = getDeviceId();
-        
-        if (existingSessions.device_id !== deviceId) {
-          const lastActive = new Date(existingSessions.last_active);
-          const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
+      if (sessionError && sessionError.code !== 'PGRST116') {
+        console.error("Error checking sessions:", sessionError);
+      }
+
+      const deviceId = getDeviceId();
+      
+      if (existingSession) {
+        if (existingSession.device_id !== deviceId) {
+          const lastActive = new Date(existingSession.last_active);
+          const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000); // Reduced from 10 to 5 minutes
           
-          if (lastActive > tenMinutesAgo) {
+          if (lastActive > fiveMinutesAgo) {
             toast({
               title: "Account in use",
-              description: "This account is currently being used on another device.",
+              description: "This account is currently being used on another device. Please log out from the other device first.",
               variant: "destructive",
             });
             return false;
+          } else {
+            // Session on other device is considered inactive, we'll force logout
+            await supabase.from('user_sessions')
+              .delete()
+              .match({ email: email });
           }
         }
       }
@@ -59,8 +69,7 @@ export const useAuthActions = () => {
       }
 
       if (data.user) {
-        const deviceId = getDeviceId();
-        
+        // Successfully logged in, update or create session record
         await supabase.from('user_sessions')
           .upsert({
             user_id: data.user.id,
@@ -211,10 +220,46 @@ export const useAuthActions = () => {
     }
   };
 
+  const resetPassword = async (email: string): Promise<boolean> => {
+    try {
+      setIsLoading(true);
+      
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + '/auth?reset=true',
+      });
+      
+      if (error) {
+        toast({
+          title: "Password reset failed",
+          description: error.message,
+          variant: "destructive",
+        });
+        return false;
+      }
+      
+      toast({
+        title: "Password reset email sent",
+        description: "Check your email for the password reset link",
+      });
+      return true;
+    } catch (error) {
+      console.error("Password reset error:", error);
+      toast({
+        title: "Password reset failed",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return {
     login,
     register,
     logout,
+    resetPassword,
     isLoading,
   };
 };

@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { User, UserRole } from "../types";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,7 +12,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const { login, register, logout } = useAuthActions();
+  const { login, register, logout, resetPassword } = useAuthActions();
 
   // Set up authentication listener
   useEffect(() => {
@@ -83,6 +84,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         login,
         logout,
         register,
+        resetPassword,
         isAuthenticated: !!currentUser,
         isLoading
       }}

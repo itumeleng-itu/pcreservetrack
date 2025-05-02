@@ -47,11 +47,11 @@ export function ComputerGrid({ computers, emptyMessage = "No computers available
             </div>
             
             <div className="space-y-8">
-              {/* Split into rows of 16 computers (8 on each side) */}
-              {Array.from({ length: Math.ceil(locationComputers.length / 16) }).map((_, rowIndex) => {
-                const rowComputers = locationComputers.slice(rowIndex * 16, (rowIndex + 1) * 16);
-                const firstHalf = rowComputers.slice(0, 8);
-                const secondHalf = rowComputers.slice(8);
+              {/* Split into rows of 8 computers (4 on each side) */}
+              {Array.from({ length: Math.ceil(locationComputers.length / 8) }).map((_, rowIndex) => {
+                const rowComputers = locationComputers.slice(rowIndex * 8, (rowIndex + 1) * 8);
+                const firstHalf = rowComputers.slice(0, 4);
+                const secondHalf = rowComputers.slice(4);
                 
                 return (
                   <div key={rowIndex} className="relative">
@@ -66,7 +66,7 @@ export function ComputerGrid({ computers, emptyMessage = "No computers available
                       </div>
                       <div className="flex space-x-8">
                         {/* Left side computers */}
-                        <div className="flex space-x-2 bg-gray-100 p-4 rounded-lg">
+                        <div className="flex space-x-4 bg-gray-100 p-4 rounded-lg">
                           {firstHalf.map((computer) => (
                             <div key={computer.id} className="w-[180px]">
                               <ComputerCard computer={computer} />
@@ -80,7 +80,7 @@ export function ComputerGrid({ computers, emptyMessage = "No computers available
                         </div>
                         
                         {/* Right side computers */}
-                        <div className="flex space-x-2 bg-gray-100 p-4 rounded-lg">
+                        <div className="flex space-x-4 bg-gray-100 p-4 rounded-lg">
                           {secondHalf.map((computer) => (
                             <div key={computer.id} className="w-[180px]">
                               <ComputerCard computer={computer} />
