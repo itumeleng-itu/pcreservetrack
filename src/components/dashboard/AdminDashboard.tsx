@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { ComputerGrid } from "../computers/ComputerGrid";
 import { ComputerTrackingTable } from "../tracking/ComputerTrackingTable";
@@ -11,6 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
 import { ComputerStatus } from "@/types";
 import { RefreshCw } from "lucide-react";
+import { UserManagement } from "../admin/UserManagement";
 
 export function AdminDashboard() {
   const { computers } = useComputers();
@@ -18,7 +20,6 @@ export function AdminDashboard() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<ComputerStatus | "all">("all");
   const [locationFilter, setLocationFilter] = useState("all");
-  const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
   
   // Get unique locations for the filter
   const locations = Array.from(new Set(computers.map(c => c.location)));
@@ -184,6 +185,7 @@ export function AdminDashboard() {
         <TabsList>
           <TabsTrigger value="computers">Computers</TabsTrigger>
           <TabsTrigger value="tracking">Tracking Info</TabsTrigger>
+          <TabsTrigger value="users">User Management</TabsTrigger>
         </TabsList>
         
         <TabsContent value="computers">
@@ -230,6 +232,10 @@ export function AdminDashboard() {
         
         <TabsContent value="tracking">
           <ComputerTrackingTable computers={computers} />
+        </TabsContent>
+        
+        <TabsContent value="users">
+          <UserManagement />
         </TabsContent>
       </Tabs>
     </div>

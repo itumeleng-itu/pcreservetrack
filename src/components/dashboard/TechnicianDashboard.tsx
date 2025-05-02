@@ -4,7 +4,7 @@ import { ComputerGrid } from "../computers/ComputerGrid";
 import { useComputers } from "@/context/ComputerContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, CheckCircle2, Clock } from "lucide-react";
+import { AlertTriangle, CheckCircle2 } from "lucide-react";
 
 export function TechnicianDashboard() {
   const { computers, getFaultyComputers } = useComputers();
