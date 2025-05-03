@@ -16,13 +16,13 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       output: {
         // Add a hash to chunk names but keep CSS files with a more predictable name
-        entryFileNames: 'assets/[name]-[hash].js',
-        chunkFileNames: 'assets/[name]-[hash].js',
+        entryFileNames: 'assets/[name].[hash].js',
+        chunkFileNames: 'assets/[name].[hash].js',
         assetFileNames: (assetInfo) => {
           if (assetInfo.name && assetInfo.name.endsWith('.css')) {
-            return 'assets/styles-[hash].css';
+            return 'assets/[name].[hash].css';
           }
-          return 'assets/[name]-[hash].[ext]';
+          return 'assets/[name].[hash].[ext]';
         }
       }
     }

@@ -14,6 +14,7 @@ import ProfilePage from "./pages/ProfilePage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
+const basePath = import.meta.env.MODE === 'production' ? '/pcreservetrack' : '';
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -23,7 +24,7 @@ const App = () => (
           <TooltipProvider>
             <Toaster />
             <Sonner />
-            <BrowserRouter>
+            <BrowserRouter basename={basePath}>
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<AuthPage />} />
