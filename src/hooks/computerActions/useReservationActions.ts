@@ -44,18 +44,7 @@ export const useReservationActions = (computers: Computer[], setComputers: (cb: 
       return;
     }
 
-    // Convert computerId to a number and validate
-    const computerIdNumber = Number(computerId);
-    if (isNaN(computerIdNumber)) {
-      toast({
-        title: "Reservation failed",
-        description: "Invalid computer ID format",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Check if the computer exists and is available
+    // Check if the computer exists and is available - no need to convert to number
     const computerToReserve = computers.find(c => c.id === computerId);
     if (!computerToReserve) {
       toast({
@@ -133,17 +122,6 @@ export const useReservationActions = (computers: Computer[], setComputers: (cb: 
   };
 
   const releaseComputer = async (computerId: string) => {
-    // Convert computerId to a number and validate
-    const computerIdNumber = Number(computerId);
-    if (isNaN(computerIdNumber)) {
-      toast({
-        title: "Release failed",
-        description: "Invalid computer ID format",
-        variant: "destructive",
-      });
-      return;
-    }
-
     try {
       setComputers(prevComputers => prevComputers.map(computer => {
         if (computer.id === computerId && computer.status === "reserved") {
