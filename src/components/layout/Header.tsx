@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Laptop, LogOut, User } from "lucide-react";
+import { Computer, LogOut, User } from "lucide-react";
 
 export function Header() {
   const { currentUser, logout, isAuthenticated } = useAuth();
@@ -42,7 +42,7 @@ export function Header() {
       <div className="container flex h-16 items-center justify-between px-4">
         <div className="flex items-center">
           <Link to="/" className="flex items-center">
-            <Laptop className="h-6 w-6 text-blue-600 mr-2" />
+            <Computer className="h-6 w-6 text-blue-600 mr-2" />
             <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-violet-600">
               PCReserveTrack
             </span>
