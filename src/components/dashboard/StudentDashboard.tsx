@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ComputerGrid } from "../computers/ComputerGrid";
 import { useComputers } from "@/context/ComputerContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -16,6 +16,7 @@ export function StudentDashboard() {
   const { currentUser } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [locationFilter, setLocationFilter] = useState("all");
+  const [myReservations, setMyReservations] = useState<Computer[]>([]);
   
   const bookingAvailable = isWithinBookingHours();
   const bookingMessage = getBookingHoursMessage();
@@ -25,10 +26,15 @@ export function StudentDashboard() {
   // Get unique locations for the filter
   const locations = Array.from(new Set(computers.map(c => c.location)));
   
-  // User's reserved computers - using currentUser.id instead of hardcoded value
-  const myReservations = computers.filter(c => 
-    c.status === "reserved" && c.reservedBy === currentUser?.id
-  );
+  // Update reservations when computers change
+  useEffect(() => {
+    if (currentUser) {
+      const userReservations = computers.filter(c => 
+        c.status === "reserved" && c.reservedBy === currentUser.id
+      );
+      setMyReservations(userReservations);
+    }
+  }, [computers, currentUser]);
   
   // Filter available computers by search term and location
   const filteredComputers = availableComputers.filter(computer => {

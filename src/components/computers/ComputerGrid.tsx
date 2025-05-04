@@ -58,11 +58,6 @@ export function ComputerGrid({ computers, emptyMessage = "No computers available
                     <div className="flex flex-col space-y-2">
                       <div className="flex justify-between">
                         <div className="text-sm text-gray-500">Row {rowIndex + 1}</div>
-                        {rowIndex === 0 && (
-                          <div className="absolute -right-24 top-1/2 -translate-y-1/2 bg-green-500 h-32 w-20 flex items-center justify-center text-white font-medium rounded-r-lg">
-                            Exit
-                          </div>
-                        )}
                       </div>
                       <div className="flex space-x-8">
                         {/* Left side computers */}
