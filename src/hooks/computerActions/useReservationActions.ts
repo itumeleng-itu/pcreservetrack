@@ -10,8 +10,7 @@ export const useReservationActions = (
   setComputers: (cb: (prev: Computer[]) => Computer[]) => void
 ) => {
   // Query-related functions
-  const { getAvailableComputers, getReservedComputers, hasActiveReservation, isComputerAlreadyReserved } = 
-    useReservationQueries(computers);
+  const { getAvailableComputers, getReservedComputers, hasActiveReservation } = useReservationQueries(computers);
   
   // Reservation creation
   const { reserveComputer } = useReserveComputer(computers, setComputers, hasActiveReservation);
@@ -26,7 +25,6 @@ export const useReservationActions = (
     getAvailableComputers,
     getReservedComputers,
     hasActiveReservation,
-    isComputerAlreadyReserved,
     reserveComputer,
     releaseComputer,
     checkExpiredReservations,

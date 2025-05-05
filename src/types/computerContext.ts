@@ -11,6 +11,5 @@ export interface ComputerContextType {
   getReservedComputers: () => Computer[];
   getFaultyComputers: () => Computer[];
   hasActiveReservation: (userId: string) => boolean;
-  isComputerAlreadyReserved: (computerId: string) => boolean;
   updateComputersFromTracking: (trackingData: ComputerTracking[]) => void;
 }
