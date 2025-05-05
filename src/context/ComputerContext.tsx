@@ -15,6 +15,7 @@ export const ComputerProvider = ({ children }: { children: ReactNode }) => {
     getReservedComputers,
     getFaultyComputers,
     hasActiveReservation,
+    isComputerAlreadyReserved,
     reserveComputer,
     releaseComputer,
     reportFault,
@@ -34,6 +35,7 @@ export const ComputerProvider = ({ children }: { children: ReactNode }) => {
         getReservedComputers,
         getFaultyComputers,
         hasActiveReservation,
+        isComputerAlreadyReserved,
         updateComputersFromTracking
       }}
     >

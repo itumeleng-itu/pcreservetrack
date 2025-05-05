@@ -33,6 +33,7 @@ export const useReserveComputer = (
       return false;
     }
 
+    // Perform a fresh check of the computer's status to prevent race conditions
     const computerToReserve = computers.find(c => c.id === computerId);
     if (!computerToReserve) {
       toast({
@@ -46,22 +47,60 @@ export const useReserveComputer = (
     if (computerToReserve.status !== "available") {
       toast({
         title: "Reservation failed",
-        description: "This computer is no longer available",
+        description: "This computer is no longer available. It may have been reserved by another student.",
         variant: "destructive",
       });
       return false;
     }
 
+    // Check if student already has a reservation (to prevent multiple reservations)
     if (currentUser.role === "student" && hasActiveReservation(currentUser.id)) {
       toast({
-        title: "Reservation failed",
-        description: "Students can only reserve one computer at a time",
+        title: "Reservation limit reached",
+        description: "Students can only reserve one computer at a time. Please release your current reservation first.",
         variant: "destructive",
       });
       return false;
     }
 
     try {
+      // Implementation of an optimistic concurrency control pattern:
+      // 1. First mark the computer as "in_transition" to prevent race conditions
+      let reservationSuccessful = false;
+      
+      setComputers(prevComputers => {
+        const updatedComputers = prevComputers.map(computer => {
+          if (computer.id === computerId && computer.status === "available") {
+            console.log(`Marking computer ${computerId} as in transition`);
+            return {
+              ...computer,
+              status: "reserved" as ComputerStatus,
+              reservedBy: currentUser.id,
+            };
+          }
+          return computer;
+        });
+        
+        // Check if we were able to update the computer (wasn't already taken)
+        const wasUpdated = updatedComputers.some(c => 
+          c.id === computerId && 
+          c.status === "reserved" && 
+          c.reservedBy === currentUser.id
+        );
+        
+        reservationSuccessful = wasUpdated;
+        return updatedComputers;
+      });
+
+      if (!reservationSuccessful) {
+        toast({
+          title: "Reservation failed",
+          description: "This computer is no longer available. It may have been reserved by another student.",
+          variant: "destructive",
+        });
+        return false;
+      }
+
       // Calculate reservation end time
       const endTime = new Date();
       endTime.setHours(endTime.getHours() + hours);
@@ -76,16 +115,16 @@ export const useReserveComputer = (
         status: "active" as const
       };
       
-      // Add to mock reservations - make sure this happens
+      // Add to mock reservations
       mockReservations.push(newReservation);
       console.log("Reservation created:", newReservation);
       console.log("All reservations:", mockReservations);
       
-      // Update computers state to reflect the reservation
+      // Update computers state to finalize the reservation with the end time
       setComputers(prevComputers => {
-        const updatedComputers = prevComputers.map(computer => {
-          if (computer.id === computerId) {
-            console.log(`Marking computer ${computerId} as reserved by ${currentUser.id}`);
+        return prevComputers.map(computer => {
+          if (computer.id === computerId && computer.reservedBy === currentUser.id) {
+            console.log(`Finalizing reservation for computer ${computerId} by ${currentUser.id} until ${endTime}`);
             return {
               ...computer,
               status: "reserved" as ComputerStatus,
@@ -95,7 +134,6 @@ export const useReserveComputer = (
           }
           return computer;
         });
-        return updatedComputers;
       });
 
       // Update the device session to show user is active
@@ -121,6 +159,22 @@ export const useReserveComputer = (
         description: "There was an error processing your reservation",
         variant: "destructive",
       });
+      
+      // Revert the computer status on error
+      setComputers(prevComputers => {
+        return prevComputers.map(computer => {
+          if (computer.id === computerId && computer.reservedBy === currentUser.id) {
+            return {
+              ...computer,
+              status: "available" as ComputerStatus,
+              reservedBy: undefined,
+              reservedUntil: undefined
+            };
+          }
+          return computer;
+        });
+      });
+      
       return false;
     }
   };
