@@ -33,7 +33,6 @@ export const useReserveComputer = (
       return;
     }
 
-    // Check if the computer exists and is available - no need to convert to number
     const computerToReserve = computers.find(c => c.id === computerId);
     if (!computerToReserve) {
       toast({
@@ -63,23 +62,27 @@ export const useReserveComputer = (
     }
 
     try {
-      // First, attempt to reserve the computer in the database (optimistic UI update)
-      // This prevents double-booking by having a database constraint
+      // Calculate reservation end time
+      const endTime = new Date();
+      endTime.setHours(endTime.getHours() + hours);
+      
+      // Create a new reservation record in mockReservations
+      const newReservation = {
+        id: String(mockReservations.length + 1),
+        computerId,
+        userId: currentUser.id,
+        startTime: new Date(),
+        endTime,
+        status: "active" as const
+      };
+      
+      // Add to mock reservations first before updating computers state
+      mockReservations.push(newReservation);
+      
+      // Update computers state to reflect the reservation
       setComputers(prevComputers =>
         prevComputers.map(computer => {
-          if (computer.id === computerId && computer.status === "available") {
-            const endTime = new Date();
-            endTime.setHours(endTime.getHours() + hours);
-            const newReservation = {
-              id: String(mockReservations.length + 1),
-              computerId,
-              userId: currentUser.id,
-              startTime: new Date(),
-              endTime,
-              status: "active" as const
-            };
-            mockReservations.push(newReservation);
-
+          if (computer.id === computerId) {
             return {
               ...computer,
               status: "reserved" as ComputerStatus,

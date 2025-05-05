@@ -12,15 +12,17 @@ interface ReservationDialogProps {
 export function ReservationDialog({ onReserve }: ReservationDialogProps) {
   const [reservationHours, setReservationHours] = useState("0.25"); // Default to 15 minutes
   const [isReserving, setIsReserving] = useState(false);
+  const [open, setOpen] = useState(false);
   
   const handleReserve = () => {
     setIsReserving(true);
     onReserve(parseFloat(reservationHours));
     setIsReserving(false);
+    setOpen(false); // Close dialog after reservation
   };
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button size="sm">Reserve</Button>
       </DialogTrigger>
