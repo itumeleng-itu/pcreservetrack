@@ -12,7 +12,7 @@ import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Clock } from "lucide-react";
 
 export function StudentDashboard() {
-  const { computers } = useComputers();
+  const { computers, getReservedComputers } = useComputers();
   const { currentUser } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [locationFilter, setLocationFilter] = useState("all");
@@ -29,12 +29,13 @@ export function StudentDashboard() {
   // Update reservations when computers change
   useEffect(() => {
     if (currentUser) {
-      const userReservations = computers.filter(c => 
-        c.status === "reserved" && c.reservedBy === currentUser.id
-      );
+      // Use the getReservedComputers function first to get all reserved computers
+      const allReservedComputers = getReservedComputers();
+      // Then filter to only show computers reserved by the current user
+      const userReservations = allReservedComputers.filter(c => c.reservedBy === currentUser.id);
       setMyReservations(userReservations);
     }
-  }, [computers, currentUser]);
+  }, [computers, currentUser, getReservedComputers]);
   
   // Filter available computers by search term and location
   const filteredComputers = availableComputers.filter(computer => {
