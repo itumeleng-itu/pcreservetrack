@@ -76,7 +76,7 @@ export const useReserveComputer = (
         status: "active" as const
       };
       
-      // Add to mock reservations first before updating computers state
+      // Add to mock reservations
       mockReservations.push(newReservation);
       
       // Update computers state to reflect the reservation
@@ -103,6 +103,8 @@ export const useReserveComputer = (
         title: "Computer reserved",
         description: `You have reserved a computer for ${hours} hour${hours > 1 ? 's' : ''}`,
       });
+      
+      return true; // Return success status
     } catch (error) {
       console.error("Error reserving computer:", error);
       toast({
@@ -110,6 +112,7 @@ export const useReserveComputer = (
         description: "There was an error processing your reservation",
         variant: "destructive",
       });
+      return false;
     }
   };
 

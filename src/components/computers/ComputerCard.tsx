@@ -18,8 +18,9 @@ export function ComputerCard({ computer }: ComputerCardProps) {
   const { reserveComputer, releaseComputer, reportFault, fixComputer } = useComputers();
   const { currentUser } = useAuth();
   
-  const handleReserve = (hours: number) => {
-    reserveComputer(computer.id, hours);
+  const handleReserve = async (hours: number) => {
+    // Pass the computer ID and hours to the reserveComputer function
+    await reserveComputer(computer.id, hours);
   };
 
   const handleRelease = () => {

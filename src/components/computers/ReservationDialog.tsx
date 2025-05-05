@@ -14,11 +14,14 @@ export function ReservationDialog({ onReserve }: ReservationDialogProps) {
   const [isReserving, setIsReserving] = useState(false);
   const [open, setOpen] = useState(false);
   
-  const handleReserve = () => {
+  const handleReserve = async () => {
     setIsReserving(true);
-    onReserve(parseFloat(reservationHours));
-    setIsReserving(false);
-    setOpen(false); // Close dialog after reservation
+    try {
+      await onReserve(parseFloat(reservationHours));
+      setOpen(false); // Close dialog after successful reservation
+    } finally {
+      setIsReserving(false);
+    }
   };
 
   return (

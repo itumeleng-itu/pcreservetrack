@@ -17,6 +17,7 @@ export function StudentDashboard() {
   const [searchTerm, setSearchTerm] = useState("");
   const [locationFilter, setLocationFilter] = useState("all");
   const [myReservations, setMyReservations] = useState<Computer[]>([]);
+  const [activeTab, setActiveTab] = useState("available");
   
   const bookingAvailable = isWithinBookingHours();
   const bookingMessage = getBookingHoursMessage();
@@ -27,7 +28,7 @@ export function StudentDashboard() {
   // Get unique locations for the filter
   const locations = Array.from(new Set(computers.map(c => c.location)));
   
-  // Update reservations when computers change
+  // Update reservations when computers change or when tab changes
   useEffect(() => {
     if (currentUser) {
       // Use the getReservedComputers function to get all reserved computers
@@ -36,7 +37,7 @@ export function StudentDashboard() {
       const userReservations = allReservedComputers.filter(c => c.reservedBy === currentUser.id);
       setMyReservations(userReservations);
     }
-  }, [computers, currentUser, getReservedComputers]);
+  }, [computers, currentUser, getReservedComputers, activeTab]);
   
   // Filter available computers by search term and location
   const filteredComputers = availableComputers.filter(computer => {
@@ -63,7 +64,7 @@ export function StudentDashboard() {
         </AlertDescription>
       </Alert>
       
-      <Tabs defaultValue="available" className="space-y-4">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList>
           <TabsTrigger value="available">Available Computers</TabsTrigger>
           <TabsTrigger value="my-reservations">My Reservations</TabsTrigger>
