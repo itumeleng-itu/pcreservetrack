@@ -21,7 +21,7 @@ export const useReserveComputer = (
         description: "Please login to reserve a computer",
         variant: "destructive",
       });
-      return;
+      return false;
     }
 
     if (!isWithinBookingHours()) {
@@ -30,7 +30,7 @@ export const useReserveComputer = (
         description: getBookingHoursMessage(),
         variant: "destructive",
       });
-      return;
+      return false;
     }
 
     const computerToReserve = computers.find(c => c.id === computerId);
@@ -40,7 +40,7 @@ export const useReserveComputer = (
         description: "Computer not found",
         variant: "destructive",
       });
-      return;
+      return false;
     }
 
     if (computerToReserve.status !== "available") {
@@ -49,7 +49,7 @@ export const useReserveComputer = (
         description: "This computer is no longer available",
         variant: "destructive",
       });
-      return;
+      return false;
     }
 
     if (currentUser.role === "student" && hasActiveReservation(currentUser.id)) {
@@ -58,7 +58,7 @@ export const useReserveComputer = (
         description: "Students can only reserve one computer at a time",
         variant: "destructive",
       });
-      return;
+      return false;
     }
 
     try {
@@ -76,13 +76,16 @@ export const useReserveComputer = (
         status: "active" as const
       };
       
-      // Add to mock reservations
+      // Add to mock reservations - make sure this happens
       mockReservations.push(newReservation);
+      console.log("Reservation created:", newReservation);
+      console.log("All reservations:", mockReservations);
       
       // Update computers state to reflect the reservation
-      setComputers(prevComputers =>
-        prevComputers.map(computer => {
+      setComputers(prevComputers => {
+        const updatedComputers = prevComputers.map(computer => {
           if (computer.id === computerId) {
+            console.log(`Marking computer ${computerId} as reserved by ${currentUser.id}`);
             return {
               ...computer,
               status: "reserved" as ComputerStatus,
@@ -91,13 +94,19 @@ export const useReserveComputer = (
             };
           }
           return computer;
-        })
-      );
+        });
+        return updatedComputers;
+      });
 
       // Update the device session to show user is active
-      await supabase.from('user_sessions')
-        .update({ last_active: new Date().toISOString() })
-        .match({ user_id: currentUser.id });
+      try {
+        await supabase.from('user_sessions')
+          .update({ last_active: new Date().toISOString() })
+          .match({ user_id: currentUser.id });
+      } catch (error) {
+        console.error("Error updating user session:", error);
+        // Don't fail the reservation if this fails
+      }
 
       toast({
         title: "Computer reserved",

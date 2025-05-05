@@ -30,11 +30,18 @@ export function StudentDashboard() {
   
   // Update reservations when computers change or when tab changes
   useEffect(() => {
+    console.log("Refreshing dashboard, active tab:", activeTab);
+    console.log("All computers:", computers.map(c => `${c.id} (${c.status})`));
+    
     if (currentUser) {
       // Use the getReservedComputers function to get all reserved computers
       const allReservedComputers = getReservedComputers();
+      console.log("All reserved computers:", allReservedComputers.map(c => c.id));
+      
       // Then filter to only show computers reserved by the current user
       const userReservations = allReservedComputers.filter(c => c.reservedBy === currentUser.id);
+      console.log("User reservations:", userReservations.map(c => c.id));
+      
       setMyReservations(userReservations);
     }
   }, [computers, currentUser, getReservedComputers, activeTab]);

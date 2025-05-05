@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 
 interface ReservationDialogProps {
-  onReserve: (hours: number) => void;
+  onReserve: (hours: number) => Promise<boolean>;
 }
 
 export function ReservationDialog({ onReserve }: ReservationDialogProps) {
@@ -17,8 +17,12 @@ export function ReservationDialog({ onReserve }: ReservationDialogProps) {
   const handleReserve = async () => {
     setIsReserving(true);
     try {
-      await onReserve(parseFloat(reservationHours));
-      setOpen(false); // Close dialog after successful reservation
+      const success = await onReserve(parseFloat(reservationHours));
+      if (success) {
+        setOpen(false); // Close dialog after successful reservation
+      }
+    } catch (error) {
+      console.error("Error in reservation:", error);
     } finally {
       setIsReserving(false);
     }

@@ -19,8 +19,10 @@ export function ComputerCard({ computer }: ComputerCardProps) {
   const { currentUser } = useAuth();
   
   const handleReserve = async (hours: number) => {
+    console.log(`Attempting to reserve computer ${computer.id} for ${hours} hours`);
     // Pass the computer ID and hours to the reserveComputer function
-    await reserveComputer(computer.id, hours);
+    const success = await reserveComputer(computer.id, hours);
+    console.log(`Reservation ${success ? 'successful' : 'failed'}`);
   };
 
   const handleRelease = () => {
