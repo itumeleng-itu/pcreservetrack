@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Computer } from "@/types";
@@ -18,11 +17,12 @@ export function ComputerCard({ computer }: ComputerCardProps) {
   const { reserveComputer, releaseComputer, reportFault, fixComputer } = useComputers();
   const { currentUser } = useAuth();
   
-  const handleReserve = async (hours: number) => {
+  const handleReserve = async (hours: number): Promise<boolean> => {
     console.log(`Attempting to reserve computer ${computer.id} for ${hours} hours`);
     // Pass the computer ID and hours to the reserveComputer function
     const success = await reserveComputer(computer.id, hours);
     console.log(`Reservation ${success ? 'successful' : 'failed'}`);
+    return success;
   };
 
   const handleRelease = () => {

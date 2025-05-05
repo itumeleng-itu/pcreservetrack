@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { ReservationDialog } from "./ReservationDialog";
@@ -9,7 +8,7 @@ import { User } from "@/types";
 interface ComputerCardActionsProps {
   computer: Computer;
   currentUser: User | null;
-  onReserve: (hours: number) => void;
+  onReserve: (hours: number) => Promise<boolean>;
   onRelease: () => void;
   onReportFault: (description: string, isEmergency: boolean) => void;
   onFix: () => void;
