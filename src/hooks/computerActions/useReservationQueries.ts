@@ -10,7 +10,10 @@ export const useReservationQueries = (computers: Computer[]) => {
 
   const getReservedComputers = () => {
     // Make sure we return all reserved computers
-    return computers.filter(c => c.status === "reserved");
+    console.log("Fetching reserved computers...");
+    const reservedComputers = computers.filter(c => c.status === "reserved");
+    console.log("Reserved computers:", reservedComputers.map(c => c.id));
+    return reservedComputers;
   };
 
   const hasActiveReservation = (userId: string) => {

@@ -43,6 +43,7 @@ export const useReserveComputer = (
       return false;
     }
 
+    // Check again if the computer is still available
     if (computerToReserve.status !== "available") {
       toast({
         title: "Reservation failed",
@@ -76,7 +77,7 @@ export const useReserveComputer = (
         status: "active" as const
       };
       
-      // Add to mock reservations - make sure this happens
+      // Add to mock reservations
       mockReservations.push(newReservation);
       console.log("Reservation created:", newReservation);
       console.log("All reservations:", mockReservations);
@@ -113,6 +114,7 @@ export const useReserveComputer = (
         description: `You have reserved a computer for ${hours} hour${hours > 1 ? 's' : ''}`,
       });
       
+      console.log("Reservation successful");
       return true; // Return success status
     } catch (error) {
       console.error("Error reserving computer:", error);

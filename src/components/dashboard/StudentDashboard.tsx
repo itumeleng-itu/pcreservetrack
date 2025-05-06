@@ -34,14 +34,16 @@ export function StudentDashboard() {
     console.log("All computers:", computers.map(c => `${c.id} (${c.status})`));
     
     if (currentUser) {
-      // Use the getReservedComputers function to get all reserved computers
+      // Get all reserved computers
       const allReservedComputers = getReservedComputers();
       console.log("All reserved computers:", allReservedComputers.map(c => c.id));
       
-      // Then filter to only show computers reserved by the current user
-      const userReservations = allReservedComputers.filter(c => c.reservedBy === currentUser.id);
-      console.log("User reservations:", userReservations.map(c => c.id));
+      // Filter for current user's reservations
+      const userReservations = allReservedComputers.filter(computer => 
+        computer.reservedBy === currentUser.id
+      );
       
+      console.log("User reservations:", userReservations.map(c => c.id));
       setMyReservations(userReservations);
     }
   }, [computers, currentUser, getReservedComputers, activeTab]);
