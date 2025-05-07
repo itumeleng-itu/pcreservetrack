@@ -41,7 +41,7 @@ export function StatusBadge({ status }: StatusBadgeProps) {
   const { className, icon, label } = getStatusConfig(status);
 
   return (
-    <Badge className={`flex items-center ${className}`}>
+    <Badge className={`flex items-center ${className}`} variant="outline">
       {icon}
       {label}
     </Badge>

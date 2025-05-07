@@ -8,9 +8,10 @@ import { Loader2 } from "lucide-react";
 
 interface ReservationDialogProps {
   onReserve: (hours: number) => Promise<boolean>;
+  onReservationSuccess?: () => void;
 }
 
-export function ReservationDialog({ onReserve }: ReservationDialogProps) {
+export function ReservationDialog({ onReserve, onReservationSuccess }: ReservationDialogProps) {
   const [reservationHours, setReservationHours] = useState("0.25"); // Default to 15 minutes
   const [isReserving, setIsReserving] = useState(false);
   const [open, setOpen] = useState(false);
@@ -21,6 +22,10 @@ export function ReservationDialog({ onReserve }: ReservationDialogProps) {
       const success = await onReserve(parseFloat(reservationHours));
       if (success) {
         setOpen(false); // Close dialog after successful reservation
+        if (onReservationSuccess) {
+          console.log("Reservation successful, triggering refresh callback");
+          onReservationSuccess();
+        }
       }
     } catch (error) {
       console.error("Error in reservation:", error);

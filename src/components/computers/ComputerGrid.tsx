@@ -7,9 +7,14 @@ import { AlertCircle } from "lucide-react";
 interface ComputerGridProps {
   computers: Computer[];
   emptyMessage?: string;
+  onReservationSuccess?: () => void;
 }
 
-export function ComputerGrid({ computers, emptyMessage = "No computers available" }: ComputerGridProps) {
+export function ComputerGrid({ 
+  computers, 
+  emptyMessage = "No computers available",
+  onReservationSuccess 
+}: ComputerGridProps) {
   if (computers.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center p-12 text-center border rounded-lg bg-gray-50">
@@ -64,7 +69,10 @@ export function ComputerGrid({ computers, emptyMessage = "No computers available
                         <div className="flex space-x-4 bg-gray-100 p-4 rounded-lg">
                           {firstHalf.map((computer) => (
                             <div key={computer.id} className="w-[180px]">
-                              <ComputerCard computer={computer} />
+                              <ComputerCard 
+                                computer={computer} 
+                                onReservationSuccess={onReservationSuccess}
+                              />
                             </div>
                           ))}
                         </div>
@@ -78,7 +86,10 @@ export function ComputerGrid({ computers, emptyMessage = "No computers available
                         <div className="flex space-x-4 bg-gray-100 p-4 rounded-lg">
                           {secondHalf.map((computer) => (
                             <div key={computer.id} className="w-[180px]">
-                              <ComputerCard computer={computer} />
+                              <ComputerCard 
+                                computer={computer} 
+                                onReservationSuccess={onReservationSuccess}
+                              />
                             </div>
                           ))}
                         </div>

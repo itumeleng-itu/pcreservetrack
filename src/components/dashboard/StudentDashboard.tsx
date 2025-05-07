@@ -9,7 +9,8 @@ import { useAuth } from "@/context/AuthContext";
 import { Computer } from "@/types";
 import { isWithinBookingHours, getBookingHoursMessage } from "@/utils/computerUtils";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { Clock, ComputerIcon } from "lucide-react";
+import { Clock, ComputerIcon, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export function StudentDashboard() {
   const { computers, getReservedComputers, getAvailableComputers } = useComputers();
@@ -28,11 +29,9 @@ export function StudentDashboard() {
   // Get unique locations for the filter
   const locations = Array.from(new Set(computers.map(c => c.location)));
   
-  // Update reservations when computers change or when tab changes
-  useEffect(() => {
-    console.log("Refreshing dashboard, active tab:", activeTab);
-    console.log("All computers:", computers.map(c => `${c.id} (${c.status})`));
-    
+  // Function to refresh the reservation list
+  const refreshReservations = () => {
+    console.log("Refreshing reservations manually");
     if (currentUser) {
       // Get all reserved computers
       const allReservedComputers = getReservedComputers();
@@ -46,7 +45,25 @@ export function StudentDashboard() {
       console.log("User reservations:", userReservations.map(c => c.id));
       setMyReservations(userReservations);
     }
+  };
+  
+  // Update reservations when computers change or when tab changes
+  useEffect(() => {
+    console.log("Refreshing dashboard, active tab:", activeTab);
+    console.log("All computers:", computers.map(c => `${c.id} (${c.status})`));
+    
+    refreshReservations();
   }, [computers, currentUser, getReservedComputers, activeTab]);
+  
+  // Debug logs to track state
+  useEffect(() => {
+    console.log("Current reservations update:", {
+      allComputers: computers.filter(c => c.status === "reserved").map(c => `${c.id} (${c.status})`),
+      available: getAvailableComputers().length,
+      reserved: getReservedComputers().length,
+      myReservations: myReservations.map(c => c.id)
+    });
+  }, [computers, myReservations, getAvailableComputers, getReservedComputers]);
   
   // Filter available computers by search term and location
   const filteredComputers = availableComputers.filter(computer => {
@@ -61,12 +78,8 @@ export function StudentDashboard() {
   const handleTabChange = (value: string) => {
     setActiveTab(value);
     // Force a refresh of the reservations when switching tabs
-    if (value === "my-reservations" && currentUser) {
-      const allReservedComputers = getReservedComputers();
-      const userReservations = allReservedComputers.filter(computer => 
-        computer.reservedBy === currentUser.id
-      );
-      setMyReservations(userReservations);
+    if (value === "my-reservations") {
+      refreshReservations();
     }
   };
 
@@ -94,6 +107,17 @@ export function StudentDashboard() {
           <TabsTrigger value="my-reservations" className="flex items-center gap-2">
             <Clock className="h-4 w-4" /> 
             My Reservations {myReservations.length > 0 && `(${myReservations.length})`}
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={(e) => {
+                e.stopPropagation();
+                refreshReservations();
+              }}
+              className="h-5 w-5 ml-1"
+            >
+              <RefreshCw className="h-3 w-3" />
+            </Button>
           </TabsTrigger>
         </TabsList>
         
@@ -125,7 +149,8 @@ export function StudentDashboard() {
             
             <ComputerGrid 
               computers={filteredComputers} 
-              emptyMessage="No available computers match your criteria." 
+              emptyMessage="No available computers match your criteria."
+              onReservationSuccess={refreshReservations}
             />
           </div>
         </TabsContent>
@@ -133,7 +158,8 @@ export function StudentDashboard() {
         <TabsContent value="my-reservations">
           <ComputerGrid 
             computers={myReservations} 
-            emptyMessage="You don't have any active reservations." 
+            emptyMessage="You don't have any active reservations."
+            onReservationSuccess={refreshReservations}
           />
         </TabsContent>
       </Tabs>

@@ -5,7 +5,9 @@ import { mockReservations } from "@/services/mockData";
 export const useReservationQueries = (computers: Computer[]) => {
   const getAvailableComputers = () => {
     // Make sure we only return computers that are actually available
-    return computers.filter(c => c.status === "available");
+    const available = computers.filter(c => c.status === "available");
+    console.log(`Found ${available.length} available computers`);
+    return available;
   };
 
   const getReservedComputers = () => {

@@ -15,6 +15,7 @@ interface ComputerCardActionsProps {
   onRelease: () => void;
   onReportFault: (description: string, isEmergency: boolean) => void;
   onFix: () => void;
+  onReservationSuccess?: () => void;
 }
 
 export function ComputerCardActions({
@@ -23,7 +24,8 @@ export function ComputerCardActions({
   onReserve,
   onRelease,
   onReportFault,
-  onFix
+  onFix,
+  onReservationSuccess
 }: ComputerCardActionsProps) {
   const { toast } = useToast();
   
@@ -41,12 +43,21 @@ export function ComputerCardActions({
       title: "Reservation canceled",
       description: "The computer is now available for others",
     });
+    
+    // Also trigger the callback on release
+    if (onReservationSuccess) {
+      console.log("Triggering onReservationSuccess callback from ComputerCardActions");
+      onReservationSuccess();
+    }
   };
 
   return (
     <div className="flex flex-wrap items-center gap-2 w-full">
       {isStudent && computer.status === "available" && isOnline && (
-        <ReservationDialog onReserve={onReserve} />
+        <ReservationDialog 
+          onReserve={onReserve} 
+          onReservationSuccess={onReservationSuccess} 
+        />
       )}
       
       {isStudent && computer.status === "available" && !isOnline && (

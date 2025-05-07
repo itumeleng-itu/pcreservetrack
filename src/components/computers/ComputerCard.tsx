@@ -13,9 +13,10 @@ import { formatDistanceToNow } from "date-fns";
 
 interface ComputerCardProps {
   computer: Computer;
+  onReservationSuccess?: () => void;
 }
 
-export function ComputerCard({ computer }: ComputerCardProps) {
+export function ComputerCard({ computer, onReservationSuccess }: ComputerCardProps) {
   const { reserveComputer, releaseComputer, reportFault, fixComputer } = useComputers();
   const { currentUser } = useAuth();
   
@@ -24,12 +25,25 @@ export function ComputerCard({ computer }: ComputerCardProps) {
     // Pass the computer ID and hours to the reserveComputer function
     const success = await reserveComputer(computer.id, hours);
     console.log(`Reservation ${success ? 'successful' : 'failed'}`);
+    
+    // If reservation was successful, trigger the callback
+    if (success && onReservationSuccess) {
+      console.log("Triggering onReservationSuccess callback from ComputerCard");
+      onReservationSuccess();
+    }
+    
     return success;
   };
 
   const handleRelease = () => {
     console.log(`Releasing computer ${computer.id}`);
     releaseComputer(computer.id);
+    
+    // Also trigger the callback on release
+    if (onReservationSuccess) {
+      console.log("Triggering onReservationSuccess callback after release");
+      onReservationSuccess();
+    }
   };
 
   const handleReportFault = (description: string, isEmergency: boolean) => {
@@ -93,6 +107,7 @@ export function ComputerCard({ computer }: ComputerCardProps) {
           onRelease={handleRelease}
           onReportFault={handleReportFault}
           onFix={handleFix}
+          onReservationSuccess={onReservationSuccess}
         />
       </CardFooter>
     </Card>

@@ -1,4 +1,3 @@
-
 import { Computer, ComputerStatus } from "@/types";
 import { mockReservations } from "@/services/mockData";
 import { useToast } from "@/hooks/use-toast";
@@ -39,24 +38,37 @@ export const useReleaseComputer = (
 
       console.log(`Releasing computer ${computerId} from reservation`);
       
-      setComputers(prevComputers => prevComputers.map(computer => {
-        if (computer.id === computerId && computer.status === "reserved") {
-          const reservation = mockReservations.find(
-            r => r.computerId === computerId && r.status === "active"
-          );
-          if (reservation) {
-            console.log(`Completing reservation ${reservation.id}`);
-            reservation.status = "completed";
+      setComputers(prevComputers => {
+        const updatedComputers = prevComputers.map(computer => {
+          if (computer.id === computerId && computer.status === "reserved") {
+            const reservation = mockReservations.find(
+              r => r.computerId === computerId && r.status === "active"
+            );
+            if (reservation) {
+              console.log(`Completing reservation ${reservation.id}`);
+              reservation.status = "completed";
+            }
+            
+            console.log(`Updating computer ${computerId} status to available`);
+            return {
+              ...computer,
+              status: "available" as ComputerStatus,
+              reservedBy: undefined,
+              reservedUntil: undefined,
+            };
           }
-          return {
-            ...computer,
-            status: "available" as ComputerStatus,
-            reservedBy: undefined,
-            reservedUntil: undefined,
-          };
-        }
-        return computer;
-      }));
+          return computer;
+        });
+        
+        // Log the updated state for debugging
+        console.log("Updated computers after release:", 
+          updatedComputers
+            .filter(c => c.id === computerId || c.status === "reserved")
+            .map(c => `${c.id} (${c.status})`)
+        );
+        
+        return updatedComputers;
+      });
 
       // Update user's last active timestamp to keep session fresh
       if (currentUser) {
@@ -71,6 +83,7 @@ export const useReleaseComputer = (
       });
       
       console.log(`Computer ${computerId} successfully released`);
+      return true;
     } catch (error) {
       console.error("Error releasing computer:", error);
       toast({
@@ -78,6 +91,7 @@ export const useReleaseComputer = (
         description: "There was an error processing your request",
         variant: "destructive",
       });
+      return false;
     }
   };
 
