@@ -30,9 +30,19 @@ export const useReservationQueries = (computers: Computer[]) => {
     return hasMockReservation || hasComputerReservation;
   };
 
+  // Add a function to check if a computer is already reserved
+  const isComputerAlreadyReserved = (computerId: string) => {
+    const isReserved = computers.some(
+      c => c.id === computerId && c.status === "reserved"
+    );
+    console.log(`Computer ${computerId} is reserved: ${isReserved}`);
+    return isReserved;
+  };
+
   return {
     getAvailableComputers,
     getReservedComputers,
-    hasActiveReservation
+    hasActiveReservation,
+    isComputerAlreadyReserved
   };
 };

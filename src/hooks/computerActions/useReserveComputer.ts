@@ -14,7 +14,7 @@ export const useReserveComputer = (
   const { toast } = useToast();
   const { currentUser } = useAuth();
 
-  const reserveComputer = async (computerId: string, hours: number) => {
+  const reserveComputer = async (computerId: string, hours: number): Promise<boolean> => {
     if (!currentUser) {
       toast({
         title: "Authentication required",
