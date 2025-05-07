@@ -10,6 +10,8 @@ interface StatusBadgeProps {
 
 export function StatusBadge({ status }: StatusBadgeProps) {
   const getStatusConfig = (status: string) => {
+    console.log(`Rendering StatusBadge with status: ${status}`);
+    
     switch (status) {
       case "available":
         return {
@@ -30,6 +32,7 @@ export function StatusBadge({ status }: StatusBadgeProps) {
           label: "Faulty"
         };
       default:
+        console.warn(`Unknown status: ${status}, falling back to default`);
         return {
           className: "bg-gray-100 text-gray-800 hover:bg-gray-200",
           icon: null,
