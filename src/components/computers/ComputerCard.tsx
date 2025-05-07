@@ -9,6 +9,7 @@ import { ComputerSpecs } from "./ComputerSpecs";
 import { ComputerCardActions } from "./ComputerCardActions";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { formatDistanceToNow } from "date-fns";
 
 interface ComputerCardProps {
   computer: Computer;
@@ -27,6 +28,7 @@ export function ComputerCard({ computer }: ComputerCardProps) {
   };
 
   const handleRelease = () => {
+    console.log(`Releasing computer ${computer.id}`);
     releaseComputer(computer.id);
   };
 
@@ -40,16 +42,26 @@ export function ComputerCard({ computer }: ComputerCardProps) {
 
   const isReservedByCurrentUser = computer.reservedBy === currentUser?.id;
   const isOnline = computer.tracking?.online;
+  
+  // Time remaining for reservation
+  const reservationTimeRemaining = computer.reservedUntil ? 
+    formatDistanceToNow(computer.reservedUntil, { addSuffix: true }) : "";
 
   return (
     <Card 
       className={cn(
-        "w-full transition-all duration-200",
+        "w-full transition-all duration-200 relative",
         isOnline ? "bg-white" : "bg-gray-100 opacity-75",
-        computer.status === "faulty" && "border-red-200",
-        computer.status === "reserved" && "border-blue-200"
+        computer.status === "faulty" && "border-red-400",
+        computer.status === "reserved" && !isReservedByCurrentUser && "border-blue-400",
+        isReservedByCurrentUser && "border-green-500 shadow-md"
       )}
     >
+      {isReservedByCurrentUser && (
+        <div className="absolute -top-2 -right-2">
+          <Badge className="bg-green-500">Your Reservation</Badge>
+        </div>
+      )}
       <ComputerCardHeader computer={computer} />
       <CardContent className="relative">
         {!isOnline && (
@@ -64,6 +76,14 @@ export function ComputerCard({ computer }: ComputerCardProps) {
           computer={computer} 
           isCurrentUser={isReservedByCurrentUser} 
         />
+        
+        {computer.status === "reserved" && computer.reservedUntil && (
+          <div className="mt-2 text-sm text-muted-foreground">
+            <p className="flex items-center">
+              Reserved until: {reservationTimeRemaining}
+            </p>
+          </div>
+        )}
       </CardContent>
       <CardFooter className="flex justify-between">
         <ComputerCardActions

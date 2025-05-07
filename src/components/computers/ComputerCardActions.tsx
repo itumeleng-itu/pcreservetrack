@@ -1,9 +1,12 @@
+
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { ReservationDialog } from "./ReservationDialog";
 import { ReportIssueDialog } from "./ReportIssueDialog";
 import { Computer } from "@/types";
 import { User } from "@/types";
+import { Clock, X } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface ComputerCardActionsProps {
   computer: Computer;
@@ -22,6 +25,8 @@ export function ComputerCardActions({
   onReportFault,
   onFix
 }: ComputerCardActionsProps) {
+  const { toast } = useToast();
+  
   if (!currentUser) return null;
 
   const isStudent = currentUser.role === "student";
@@ -30,25 +35,40 @@ export function ComputerCardActions({
   const isReservedByCurrentUser = computer.reservedBy === currentUser.id;
   const isOnline = computer.tracking?.online;
 
+  const handleRelease = () => {
+    onRelease();
+    toast({
+      title: "Reservation canceled",
+      description: "The computer is now available for others",
+    });
+  };
+
   return (
-    <>
+    <div className="flex flex-wrap items-center gap-2 w-full">
       {isStudent && computer.status === "available" && isOnline && (
         <ReservationDialog onReserve={onReserve} />
       )}
       
       {isStudent && computer.status === "available" && !isOnline && (
-        <Button size="sm" variant="outline" disabled>
-          Offline
+        <Button size="sm" variant="outline" disabled className="flex items-center gap-1">
+          <X className="h-4 w-4" /> Offline
         </Button>
       )}
       
       {isStudent && isReservedByCurrentUser && (
-        <Button size="sm" onClick={onRelease}>Release</Button>
+        <Button 
+          size="sm" 
+          variant="destructive" 
+          onClick={handleRelease}
+          className="flex items-center gap-1"
+        >
+          <X className="h-4 w-4" /> Cancel Reservation
+        </Button>
       )}
       
       {isStudent && computer.status === "reserved" && !isReservedByCurrentUser && (
-        <Button size="sm" variant="outline" disabled>
-          Reserved
+        <Button size="sm" variant="outline" disabled className="flex items-center gap-1">
+          <Clock className="h-4 w-4" /> Reserved
         </Button>
       )}
       
@@ -57,12 +77,19 @@ export function ComputerCardActions({
       )}
       
       {isAdmin && computer.status === "reserved" && (
-        <Button size="sm" onClick={onRelease}>Force Release</Button>
+        <Button 
+          size="sm" 
+          variant="destructive" 
+          onClick={onRelease}
+          className="flex items-center gap-1"
+        >
+          <X className="h-4 w-4" /> Force Release
+        </Button>
       )}
       
       {isTechnician && computer.status === "faulty" && (
         <Button size="sm" onClick={onFix}>Mark as Fixed</Button>
       )}
-    </>
+    </div>
   );
 }

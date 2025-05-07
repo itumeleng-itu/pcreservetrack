@@ -1,3 +1,4 @@
+
 import { Computer, ComputerStatus } from "@/types";
 import { mockReservations } from "@/services/mockData";
 import { useToast } from "@/hooks/use-toast";
@@ -13,12 +14,38 @@ export const useReleaseComputer = (
 
   const releaseComputer = async (computerId: string) => {
     try {
+      // Find the computer to confirm it exists and is reserved
+      const computerToRelease = computers.find(c => c.id === computerId);
+      
+      if (!computerToRelease) {
+        console.error(`Computer with ID ${computerId} not found`);
+        toast({
+          title: "Release failed",
+          description: "Computer not found",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      if (computerToRelease.status !== "reserved") {
+        console.error(`Computer with ID ${computerId} is not reserved`);
+        toast({
+          title: "Release failed",
+          description: "This computer is not currently reserved",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      console.log(`Releasing computer ${computerId} from reservation`);
+      
       setComputers(prevComputers => prevComputers.map(computer => {
         if (computer.id === computerId && computer.status === "reserved") {
           const reservation = mockReservations.find(
             r => r.computerId === computerId && r.status === "active"
           );
           if (reservation) {
+            console.log(`Completing reservation ${reservation.id}`);
             reservation.status = "completed";
           }
           return {
@@ -42,6 +69,8 @@ export const useReleaseComputer = (
         title: "Computer released",
         description: "The computer is now available for other users",
       });
+      
+      console.log(`Computer ${computerId} successfully released`);
     } catch (error) {
       console.error("Error releasing computer:", error);
       toast({

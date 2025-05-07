@@ -9,7 +9,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Computer } from "@/types";
 import { isWithinBookingHours, getBookingHoursMessage } from "@/utils/computerUtils";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { Clock } from "lucide-react";
+import { Clock, ComputerIcon } from "lucide-react";
 
 export function StudentDashboard() {
   const { computers, getReservedComputers, getAvailableComputers } = useComputers();
@@ -58,6 +58,18 @@ export function StudentDashboard() {
     return matchesSearch && matchesLocation;
   });
 
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    // Force a refresh of the reservations when switching tabs
+    if (value === "my-reservations" && currentUser) {
+      const allReservedComputers = getReservedComputers();
+      const userReservations = allReservedComputers.filter(computer => 
+        computer.reservedBy === currentUser.id
+      );
+      setMyReservations(userReservations);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -73,10 +85,16 @@ export function StudentDashboard() {
         </AlertDescription>
       </Alert>
       
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
         <TabsList>
-          <TabsTrigger value="available">Available Computers</TabsTrigger>
-          <TabsTrigger value="my-reservations">My Reservations</TabsTrigger>
+          <TabsTrigger value="available" className="flex items-center gap-2">
+            <ComputerIcon className="h-4 w-4" /> 
+            Available Computers
+          </TabsTrigger>
+          <TabsTrigger value="my-reservations" className="flex items-center gap-2">
+            <Clock className="h-4 w-4" /> 
+            My Reservations {myReservations.length > 0 && `(${myReservations.length})`}
+          </TabsTrigger>
         </TabsList>
         
         <TabsContent value="available">

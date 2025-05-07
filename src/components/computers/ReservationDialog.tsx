@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { Loader2 } from "lucide-react";
 
 interface ReservationDialogProps {
   onReserve: (hours: number) => Promise<boolean>;
@@ -64,7 +65,14 @@ export function ReservationDialog({ onReserve }: ReservationDialogProps) {
         </div>
         <DialogFooter>
           <Button onClick={handleReserve} disabled={isReserving}>
-            {isReserving ? "Reserving..." : "Reserve"}
+            {isReserving ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Reserving...
+              </>
+            ) : (
+              "Reserve"
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -43,7 +43,7 @@ export const useReserveComputer = (
       return false;
     }
 
-    // Check again if the computer is still available
+    // Check again if the computer is still available to prevent race conditions
     if (computerToReserve.status !== "available") {
       toast({
         title: "Reservation failed",
@@ -66,6 +66,8 @@ export const useReserveComputer = (
       // Calculate reservation end time
       const endTime = new Date();
       endTime.setHours(endTime.getHours() + hours);
+      
+      console.log(`Creating reservation for computer ${computerId} until ${endTime.toISOString()}`);
       
       // Create a new reservation record in mockReservations
       const newReservation = {
