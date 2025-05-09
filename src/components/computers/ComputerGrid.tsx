@@ -34,6 +34,14 @@ export function ComputerGrid({
     computersByLocation[computer.location].push(computer);
   });
 
+  // Handle the reservation success by passing it up to the parent component
+  const handleReservationSuccess = (updatedComputer: Computer) => {
+    console.log("ComputerGrid received reservation success for computer:", updatedComputer.id);
+    if (onReservationSuccess) {
+      onReservationSuccess(updatedComputer);
+    }
+  };
+
   return (
     <div className="space-y-12">
       {Object.entries(computersByLocation).map(([location, locationComputers]) => (
@@ -71,11 +79,7 @@ export function ComputerGrid({
                             <div key={computer.id} className="w-[180px]">
                               <ComputerCard 
                                 computer={computer} 
-                                onReservationSuccess={(updatedComputer) => {
-                                  if (onReservationSuccess) {
-                                    onReservationSuccess(updatedComputer);
-                                  }
-                                }}
+                                onReservationSuccess={handleReservationSuccess}
                               />
                             </div>
                           ))}
@@ -92,11 +96,7 @@ export function ComputerGrid({
                             <div key={computer.id} className="w-[180px]">
                               <ComputerCard 
                                 computer={computer}
-                                onReservationSuccess={(updatedComputer) => {
-                                  if (onReservationSuccess) {
-                                    onReservationSuccess(updatedComputer);
-                                  }
-                                }}
+                                onReservationSuccess={handleReservationSuccess}
                               />
                             </div>
                           ))}

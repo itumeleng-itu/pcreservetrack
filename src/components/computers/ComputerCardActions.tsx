@@ -53,7 +53,7 @@ export function ComputerCardActions({
     
     // Also trigger the callback on release
     if (onReservationSuccess) {
-      console.log("Triggering onReservationSuccess callback from ComputerCardActions");
+      console.log("Triggering onReservationSuccess callback from ComputerCardActions after release");
       onReservationSuccess({...computer, status: "available", reservedBy: undefined, reservedUntil: undefined});
     }
   };

@@ -26,6 +26,7 @@ export function StudentDashboard() {
   
   // Update local computers state whenever the main computers state changes
   useEffect(() => {
+    console.log("Main computers state updated, updating local state");
     setLocalComputers(computers);
   }, [computers]);
   
@@ -61,8 +62,18 @@ export function StudentDashboard() {
       return computer;
     }));
     
-    // Refresh reservations and switch tab
-    refreshReservations();
+    // Add the reserved computer to myReservations immediately
+    setMyReservations(prev => {
+      // Check if we already have this computer in myReservations
+      if (!prev.some(c => c.id === reservedComputer.id)) {
+        console.log("Adding newly reserved computer to myReservations");
+        return [...prev, reservedComputer];
+      }
+      return prev;
+    });
+    
+    // Switch tab to "my-reservations" immediately to show the newly reserved computer
+    console.log("Switching to my-reservations tab after successful reservation");
     setActiveTab("my-reservations");
   };
   

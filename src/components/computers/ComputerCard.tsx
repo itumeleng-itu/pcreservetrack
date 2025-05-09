@@ -107,11 +107,7 @@ export function ComputerCard({ computer, onReservationSuccess }: ComputerCardPro
           onRelease={handleRelease}
           onReportFault={handleReportFault}
           onFix={handleFix}
-          onReservationSuccess={(updatedComputer) => {
-            if (onReservationSuccess) {
-              onReservationSuccess(updatedComputer);
-            }
-          }}
+          onReservationSuccess={onReservationSuccess}
         />
       </CardFooter>
     </Card>

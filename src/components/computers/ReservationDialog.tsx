@@ -22,7 +22,11 @@ export function ReservationDialog({ onReserve, onReservationSuccess, computer }:
     setIsReserving(true);
     try {
       const success = await onReserve(parseFloat(reservationHours));
+      
       if (success) {
+        // Close dialog after successful reservation
+        setOpen(false);
+        
         // Create an updated computer object with the new reservation details
         const endTime = new Date();
         endTime.setHours(endTime.getHours() + parseFloat(reservationHours));
@@ -32,8 +36,6 @@ export function ReservationDialog({ onReserve, onReservationSuccess, computer }:
           status: "reserved",
           reservedUntil: endTime
         };
-        
-        setOpen(false); // Close dialog after successful reservation
         
         if (onReservationSuccess) {
           console.log("Reservation successful, triggering callback with updated computer");

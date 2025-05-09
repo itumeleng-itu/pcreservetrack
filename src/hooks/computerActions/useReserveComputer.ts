@@ -86,7 +86,7 @@ export const useReserveComputer = (
       
       let updatedComputer: Computer | null = null;
       
-      // Update computers state to reflect the reservation
+      // Update computers state to reflect the reservation immediately
       setComputers(prevComputers => {
         const updatedComputers = prevComputers.map(computer => {
           if (computer.id === computerId) {
@@ -119,8 +119,8 @@ export const useReserveComputer = (
         description: `You have reserved a computer for ${hours} hour${hours > 1 ? 's' : ''}`,
       });
       
-      console.log("Reservation successful, returning updated computer");
-      return [true, updatedComputer]; // Return success status and updated computer
+      console.log("Reservation successful, returning updated computer:", updatedComputer);
+      return [true, updatedComputer]; 
     } catch (error) {
       console.error("Error reserving computer:", error);
       toast({
