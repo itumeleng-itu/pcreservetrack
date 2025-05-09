@@ -46,6 +46,13 @@ export function StudentDashboard() {
       setMyReservations(userReservations);
     }
   };
+
+  // Handle successful reservation by switching to my-reservations tab
+  const handleReservationSuccess = () => {
+    console.log("Reservation success handler in StudentDashboard");
+    refreshReservations();
+    setActiveTab("my-reservations");
+  };
   
   // Update reservations when computers change or when tab changes
   useEffect(() => {
@@ -150,7 +157,7 @@ export function StudentDashboard() {
             <ComputerGrid 
               computers={filteredComputers} 
               emptyMessage="No available computers match your criteria."
-              onReservationSuccess={refreshReservations}
+              onReservationSuccess={handleReservationSuccess}
             />
           </div>
         </TabsContent>
