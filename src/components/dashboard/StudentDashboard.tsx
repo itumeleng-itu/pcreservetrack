@@ -19,37 +19,49 @@ export function StudentDashboard() {
   const [locationFilter, setLocationFilter] = useState("all");
   const [myReservations, setMyReservations] = useState<Computer[]>([]);
   const [activeTab, setActiveTab] = useState("available");
+  const [localComputers, setLocalComputers] = useState<Computer[]>([]);
   
   const bookingAvailable = isWithinBookingHours();
   const bookingMessage = getBookingHoursMessage();
   
-  // Get available computers directly from the context
-  const availableComputers = getAvailableComputers();
+  // Update local computers state whenever the main computers state changes
+  useEffect(() => {
+    setLocalComputers(computers);
+  }, [computers]);
+  
+  // Get available computers for filtering
+  const availableComputers = localComputers.filter(c => c.status === "available");
   
   // Get unique locations for the filter
-  const locations = Array.from(new Set(computers.map(c => c.location)));
+  const locations = Array.from(new Set(localComputers.map(c => c.location)));
   
   // Function to refresh the reservation list
   const refreshReservations = () => {
     console.log("Refreshing reservations manually");
     if (currentUser) {
-      // Get all reserved computers
-      const allReservedComputers = getReservedComputers();
-      console.log("All reserved computers:", allReservedComputers.map(c => c.id));
-      
-      // Filter for current user's reservations
-      const userReservations = allReservedComputers.filter(computer => 
-        computer.reservedBy === currentUser.id
+      // Get all reserved computers from local state
+      const allReservedComputers = localComputers.filter(c => 
+        c.status === "reserved" && c.reservedBy === currentUser.id
       );
       
-      console.log("User reservations:", userReservations.map(c => c.id));
-      setMyReservations(userReservations);
+      console.log("User reservations:", allReservedComputers.map(c => c.id));
+      setMyReservations(allReservedComputers);
     }
   };
 
-  // Handle successful reservation by switching to my-reservations tab
-  const handleReservationSuccess = () => {
-    console.log("Reservation success handler in StudentDashboard");
+  // Handle successful reservation by updating local state and switching tabs
+  const handleReservationSuccess = (reservedComputer: Computer) => {
+    console.log("Reservation success handler in StudentDashboard for computer:", reservedComputer.id);
+    
+    // Update local computers state to reflect the reservation
+    setLocalComputers(prev => prev.map(computer => {
+      if (computer.id === reservedComputer.id) {
+        return { ...reservedComputer };
+      }
+      return computer;
+    }));
+    
+    // Refresh reservations and switch tab
     refreshReservations();
     setActiveTab("my-reservations");
   };
@@ -57,20 +69,17 @@ export function StudentDashboard() {
   // Update reservations when computers change or when tab changes
   useEffect(() => {
     console.log("Refreshing dashboard, active tab:", activeTab);
-    console.log("All computers:", computers.map(c => `${c.id} (${c.status})`));
-    
     refreshReservations();
-  }, [computers, currentUser, getReservedComputers, activeTab]);
+  }, [localComputers, currentUser, activeTab]);
   
   // Debug logs to track state
   useEffect(() => {
-    console.log("Current reservations update:", {
-      allComputers: computers.filter(c => c.status === "reserved").map(c => `${c.id} (${c.status})`),
-      available: getAvailableComputers().length,
-      reserved: getReservedComputers().length,
-      myReservations: myReservations.map(c => c.id)
+    console.log("Current dashboard state:", {
+      allComputers: localComputers.length,
+      available: availableComputers.length,
+      myReservations: myReservations.length
     });
-  }, [computers, myReservations, getAvailableComputers, getReservedComputers]);
+  }, [localComputers, myReservations, availableComputers]);
   
   // Filter available computers by search term and location
   const filteredComputers = availableComputers.filter(computer => {

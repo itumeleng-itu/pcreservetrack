@@ -14,14 +14,14 @@ export const useReserveComputer = (
   const { toast } = useToast();
   const { currentUser } = useAuth();
 
-  const reserveComputer = async (computerId: string, hours: number): Promise<boolean> => {
+  const reserveComputer = async (computerId: string, hours: number): Promise<[boolean, Computer | null]> => {
     if (!currentUser) {
       toast({
         title: "Authentication required",
         description: "Please login to reserve a computer",
         variant: "destructive",
       });
-      return false;
+      return [false, null];
     }
 
     if (!isWithinBookingHours()) {
@@ -30,7 +30,7 @@ export const useReserveComputer = (
         description: getBookingHoursMessage(),
         variant: "destructive",
       });
-      return false;
+      return [false, null];
     }
 
     const computerToReserve = computers.find(c => c.id === computerId);
@@ -40,7 +40,7 @@ export const useReserveComputer = (
         description: "Computer not found",
         variant: "destructive",
       });
-      return false;
+      return [false, null];
     }
 
     // Check again if the computer is still available to prevent race conditions
@@ -50,7 +50,7 @@ export const useReserveComputer = (
         description: "This computer is no longer available",
         variant: "destructive",
       });
-      return false;
+      return [false, null];
     }
 
     if (currentUser.role === "student" && hasActiveReservation(currentUser.id)) {
@@ -59,7 +59,7 @@ export const useReserveComputer = (
         description: "Students can only reserve one computer at a time",
         variant: "destructive",
       });
-      return false;
+      return [false, null];
     }
 
     try {
@@ -84,17 +84,20 @@ export const useReserveComputer = (
       console.log("Reservation created:", newReservation);
       console.log("All reservations:", mockReservations);
       
+      let updatedComputer: Computer | null = null;
+      
       // Update computers state to reflect the reservation
       setComputers(prevComputers => {
         const updatedComputers = prevComputers.map(computer => {
           if (computer.id === computerId) {
             console.log(`Marking computer ${computerId} as reserved by ${currentUser.id}`);
-            return {
+            updatedComputer = {
               ...computer,
               status: "reserved" as ComputerStatus,
               reservedBy: currentUser.id,
               reservedUntil: endTime
             };
+            return updatedComputer;
           }
           return computer;
         });
@@ -116,8 +119,8 @@ export const useReserveComputer = (
         description: `You have reserved a computer for ${hours} hour${hours > 1 ? 's' : ''}`,
       });
       
-      console.log("Reservation successful");
-      return true; // Return success status
+      console.log("Reservation successful, returning updated computer");
+      return [true, updatedComputer]; // Return success status and updated computer
     } catch (error) {
       console.error("Error reserving computer:", error);
       toast({
@@ -125,7 +128,7 @@ export const useReserveComputer = (
         description: "There was an error processing your reservation",
         variant: "destructive",
       });
-      return false;
+      return [false, null];
     }
   };
 

@@ -5,13 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
+import { Computer } from "@/types";
 
 interface ReservationDialogProps {
   onReserve: (hours: number) => Promise<boolean>;
-  onReservationSuccess?: () => void;
+  onReservationSuccess?: (computer: Computer) => void;
+  computer: Computer;
 }
 
-export function ReservationDialog({ onReserve, onReservationSuccess }: ReservationDialogProps) {
+export function ReservationDialog({ onReserve, onReservationSuccess, computer }: ReservationDialogProps) {
   const [reservationHours, setReservationHours] = useState("0.25"); // Default to 15 minutes
   const [isReserving, setIsReserving] = useState(false);
   const [open, setOpen] = useState(false);
@@ -21,10 +23,21 @@ export function ReservationDialog({ onReserve, onReservationSuccess }: Reservati
     try {
       const success = await onReserve(parseFloat(reservationHours));
       if (success) {
+        // Create an updated computer object with the new reservation details
+        const endTime = new Date();
+        endTime.setHours(endTime.getHours() + parseFloat(reservationHours));
+        
+        const updatedComputer: Computer = {
+          ...computer,
+          status: "reserved",
+          reservedUntil: endTime
+        };
+        
         setOpen(false); // Close dialog after successful reservation
+        
         if (onReservationSuccess) {
-          console.log("Reservation successful, triggering refresh callback");
-          onReservationSuccess();
+          console.log("Reservation successful, triggering callback with updated computer");
+          onReservationSuccess(updatedComputer);
         }
       }
     } catch (error) {

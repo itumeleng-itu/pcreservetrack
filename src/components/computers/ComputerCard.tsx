@@ -13,7 +13,7 @@ import { formatDistanceToNow } from "date-fns";
 
 interface ComputerCardProps {
   computer: Computer;
-  onReservationSuccess?: () => void;
+  onReservationSuccess?: (updatedComputer: Computer) => void;
 }
 
 export function ComputerCard({ computer, onReservationSuccess }: ComputerCardProps) {
@@ -23,13 +23,13 @@ export function ComputerCard({ computer, onReservationSuccess }: ComputerCardPro
   const handleReserve = async (hours: number): Promise<boolean> => {
     console.log(`Attempting to reserve computer ${computer.id} for ${hours} hours`);
     // Pass the computer ID and hours to the reserveComputer function
-    const success = await reserveComputer(computer.id, hours);
+    const [success, updatedComputer] = await reserveComputer(computer.id, hours);
     console.log(`Reservation ${success ? 'successful' : 'failed'}`);
     
-    // If reservation was successful, trigger the callback
-    if (success && onReservationSuccess) {
-      console.log("Triggering onReservationSuccess callback from ComputerCard");
-      onReservationSuccess();
+    // If reservation was successful and we have the updated computer, trigger the callback
+    if (success && updatedComputer && onReservationSuccess) {
+      console.log("Triggering onReservationSuccess callback from ComputerCard with updated computer");
+      onReservationSuccess(updatedComputer);
     }
     
     return success;
@@ -42,7 +42,7 @@ export function ComputerCard({ computer, onReservationSuccess }: ComputerCardPro
     // Also trigger the callback on release
     if (onReservationSuccess) {
       console.log("Triggering onReservationSuccess callback after release");
-      onReservationSuccess();
+      onReservationSuccess({...computer, status: "available", reservedBy: undefined, reservedUntil: undefined});
     }
   };
 
@@ -107,7 +107,11 @@ export function ComputerCard({ computer, onReservationSuccess }: ComputerCardPro
           onRelease={handleRelease}
           onReportFault={handleReportFault}
           onFix={handleFix}
-          onReservationSuccess={onReservationSuccess}
+          onReservationSuccess={(updatedComputer) => {
+            if (onReservationSuccess) {
+              onReservationSuccess(updatedComputer);
+            }
+          }}
         />
       </CardFooter>
     </Card>

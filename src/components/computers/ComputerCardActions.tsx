@@ -15,7 +15,7 @@ interface ComputerCardActionsProps {
   onRelease: () => void;
   onReportFault: (description: string, isEmergency: boolean) => void;
   onFix: () => void;
-  onReservationSuccess?: () => void;
+  onReservationSuccess?: (updatedComputer: Computer) => void;
 }
 
 export function ComputerCardActions({
@@ -37,6 +37,13 @@ export function ComputerCardActions({
   const isReservedByCurrentUser = computer.reservedBy === currentUser.id;
   const isOnline = computer.tracking?.online;
 
+  const handleReservationSuccess = (updatedComputer: Computer) => {
+    if (onReservationSuccess) {
+      console.log("Triggering onReservationSuccess callback from ComputerCardActions");
+      onReservationSuccess(updatedComputer);
+    }
+  };
+
   const handleRelease = () => {
     onRelease();
     toast({
@@ -47,7 +54,7 @@ export function ComputerCardActions({
     // Also trigger the callback on release
     if (onReservationSuccess) {
       console.log("Triggering onReservationSuccess callback from ComputerCardActions");
-      onReservationSuccess();
+      onReservationSuccess({...computer, status: "available", reservedBy: undefined, reservedUntil: undefined});
     }
   };
 
@@ -55,8 +62,9 @@ export function ComputerCardActions({
     <div className="flex flex-wrap items-center gap-2 w-full">
       {isStudent && computer.status === "available" && isOnline && (
         <ReservationDialog 
-          onReserve={onReserve} 
-          onReservationSuccess={onReservationSuccess} 
+          onReserve={(hours) => onReserve(hours)}
+          onReservationSuccess={handleReservationSuccess}
+          computer={computer}
         />
       )}
       

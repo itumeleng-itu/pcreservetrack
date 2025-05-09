@@ -7,7 +7,7 @@ import { AlertCircle } from "lucide-react";
 interface ComputerGridProps {
   computers: Computer[];
   emptyMessage?: string;
-  onReservationSuccess?: () => void;
+  onReservationSuccess?: (computer: Computer) => void;
 }
 
 export function ComputerGrid({ 
@@ -71,7 +71,11 @@ export function ComputerGrid({
                             <div key={computer.id} className="w-[180px]">
                               <ComputerCard 
                                 computer={computer} 
-                                onReservationSuccess={onReservationSuccess}
+                                onReservationSuccess={(updatedComputer) => {
+                                  if (onReservationSuccess) {
+                                    onReservationSuccess(updatedComputer);
+                                  }
+                                }}
                               />
                             </div>
                           ))}
@@ -87,8 +91,12 @@ export function ComputerGrid({
                           {secondHalf.map((computer) => (
                             <div key={computer.id} className="w-[180px]">
                               <ComputerCard 
-                                computer={computer} 
-                                onReservationSuccess={onReservationSuccess}
+                                computer={computer}
+                                onReservationSuccess={(updatedComputer) => {
+                                  if (onReservationSuccess) {
+                                    onReservationSuccess(updatedComputer);
+                                  }
+                                }}
                               />
                             </div>
                           ))}
