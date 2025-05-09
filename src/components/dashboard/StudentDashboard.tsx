@@ -28,7 +28,16 @@ export function StudentDashboard() {
   useEffect(() => {
     console.log("Main computers state updated, updating local state");
     setLocalComputers(computers);
-  }, [computers]);
+    
+    // Also update myReservations immediately when computers state changes
+    if (currentUser) {
+      const userReservations = computers.filter(c => 
+        c.status === "reserved" && c.reservedBy === currentUser.id
+      );
+      console.log("User reservations updated from computers state:", userReservations.map(c => c.id));
+      setMyReservations(userReservations);
+    }
+  }, [computers, currentUser]);
   
   // Get available computers for filtering
   const availableComputers = localComputers.filter(c => c.status === "available");
@@ -65,11 +74,13 @@ export function StudentDashboard() {
     // Add the reserved computer to myReservations immediately
     setMyReservations(prev => {
       // Check if we already have this computer in myReservations
-      if (!prev.some(c => c.id === reservedComputer.id)) {
+      const exists = prev.some(c => c.id === reservedComputer.id);
+      if (!exists) {
         console.log("Adding newly reserved computer to myReservations");
         return [...prev, reservedComputer];
       }
-      return prev;
+      // If it already exists, update it
+      return prev.map(c => c.id === reservedComputer.id ? reservedComputer : c);
     });
     
     // Switch tab to "my-reservations" immediately to show the newly reserved computer
@@ -77,18 +88,21 @@ export function StudentDashboard() {
     setActiveTab("my-reservations");
   };
   
-  // Update reservations when computers change or when tab changes
+  // Update reservations when tab changes
   useEffect(() => {
-    console.log("Refreshing dashboard, active tab:", activeTab);
-    refreshReservations();
-  }, [localComputers, currentUser, activeTab]);
+    console.log("Tab changed to:", activeTab);
+    if (activeTab === "my-reservations") {
+      refreshReservations();
+    }
+  }, [activeTab]);
   
   // Debug logs to track state
   useEffect(() => {
     console.log("Current dashboard state:", {
       allComputers: localComputers.length,
       available: availableComputers.length,
-      myReservations: myReservations.length
+      myReservations: myReservations.length,
+      myReservationIds: myReservations.map(r => r.id)
     });
   }, [localComputers, myReservations, availableComputers]);
   

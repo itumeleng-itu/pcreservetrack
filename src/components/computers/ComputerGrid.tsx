@@ -83,6 +83,13 @@ export function ComputerGrid({
                               />
                             </div>
                           ))}
+                          {firstHalf.length < 4 && Array(4 - firstHalf.length).fill(null).map((_, i) => (
+                            <div key={`empty-left-${i}`} className="w-[180px]">
+                              <div className="h-72 border border-dashed border-gray-200 rounded-lg flex items-center justify-center">
+                                <span className="text-gray-400">Empty</span>
+                              </div>
+                            </div>
+                          ))}
                         </div>
                         
                         {/* Center aisle */}
@@ -98,6 +105,13 @@ export function ComputerGrid({
                                 computer={computer}
                                 onReservationSuccess={handleReservationSuccess}
                               />
+                            </div>
+                          ))}
+                          {secondHalf.length < 4 && Array(4 - secondHalf.length).fill(null).map((_, i) => (
+                            <div key={`empty-right-${i}`} className="w-[180px]">
+                              <div className="h-72 border border-dashed border-gray-200 rounded-lg flex items-center justify-center">
+                                <span className="text-gray-400">Empty</span>
+                              </div>
                             </div>
                           ))}
                         </div>
