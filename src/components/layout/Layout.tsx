@@ -26,15 +26,15 @@ export function Layout({ children }: LayoutProps) {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col dark:bg-gray-900">
       <Header />
       <main className={`flex-1 ${currentUser ? `border-l-4 ${getRoleColor()}` : ""}`}>
         <div className="container px-4 py-6 max-w-7xl mx-auto">
           {children}
         </div>
       </main>
-      <footer className="py-4 border-t bg-gray-50">
-        <div className="container text-center text-xs text-gray-500">
+      <footer className="py-4 border-t bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300">
+        <div className="container text-center text-xs text-gray-500 dark:text-gray-400">
           &copy; {new Date().getFullYear()} ComputeHubReserve - All rights reserved
         </div>
       </footer>

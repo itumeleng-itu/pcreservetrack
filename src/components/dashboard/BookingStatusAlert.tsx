@@ -9,7 +9,9 @@ export function BookingStatusAlert() {
   const bookingMessage = getBookingHoursMessage();
   
   return (
-    <Alert className={bookingAvailable ? "bg-green-50" : "bg-amber-50"}>
+    <Alert className={bookingAvailable ? 
+      "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800" : 
+      "bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800"}>
       <Clock className="h-4 w-4" />
       <AlertTitle>{bookingAvailable ? "Booking is Available" : "Booking is Unavailable"}</AlertTitle>
       <AlertDescription>
