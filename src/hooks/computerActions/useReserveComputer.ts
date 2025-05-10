@@ -104,7 +104,7 @@ export const useReserveComputer = (
         return updatedComputers;
       });
 
-      // Update the device session to show user is active
+      // Make sure to update the user session
       try {
         await supabase.from('user_sessions')
           .update({ last_active: new Date().toISOString() })

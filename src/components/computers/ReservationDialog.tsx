@@ -37,6 +37,7 @@ export function ReservationDialog({ onReserve, onReservationSuccess, computer }:
           reservedUntil: endTime
         };
         
+        // Ensure we call the success callback with the updated computer
         if (onReservationSuccess) {
           console.log("Reservation successful, triggering callback with updated computer");
           onReservationSuccess(updatedComputer);

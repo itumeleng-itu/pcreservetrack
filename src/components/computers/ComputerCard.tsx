@@ -28,7 +28,7 @@ export function ComputerCard({ computer, onReservationSuccess }: ComputerCardPro
     
     // If reservation was successful and we have the updated computer, trigger the callback
     if (success && updatedComputer && onReservationSuccess) {
-      console.log("Triggering onReservationSuccess callback from ComputerCard with updated computer");
+      console.log("Triggering onReservationSuccess callback from ComputerCard with updated computer", updatedComputer);
       onReservationSuccess(updatedComputer);
     }
     

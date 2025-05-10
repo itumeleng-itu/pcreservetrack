@@ -24,17 +24,19 @@ export function StudentDashboard() {
   const bookingAvailable = isWithinBookingHours();
   const bookingMessage = getBookingHoursMessage();
   
-  // Update local computers state whenever the main computers state changes
+  // Immediately load user reservations on component mount and whenever computers state changes
   useEffect(() => {
-    console.log("Main computers state updated, updating local state");
+    console.log("Computers state or user changed, updating reservations");
+    
+    // Update local computers state
     setLocalComputers(computers);
     
-    // Also update myReservations immediately when computers state changes
+    // Fetch user's reservations if user is logged in
     if (currentUser) {
       const userReservations = computers.filter(c => 
         c.status === "reserved" && c.reservedBy === currentUser.id
       );
-      console.log("User reservations updated from computers state:", userReservations.map(c => c.id));
+      console.log("Found user reservations:", userReservations.length, "computers - IDs:", userReservations.map(c => c.id));
       setMyReservations(userReservations);
     }
   }, [computers, currentUser]);
@@ -49,13 +51,13 @@ export function StudentDashboard() {
   const refreshReservations = () => {
     console.log("Refreshing reservations manually");
     if (currentUser) {
-      // Get all reserved computers from local state
-      const allReservedComputers = localComputers.filter(c => 
+      // Get all reserved computers from main computers state, not local state
+      const userReservations = computers.filter(c => 
         c.status === "reserved" && c.reservedBy === currentUser.id
       );
       
-      console.log("User reservations:", allReservedComputers.map(c => c.id));
-      setMyReservations(allReservedComputers);
+      console.log("Manual refresh - User reservations:", userReservations.map(c => c.id));
+      setMyReservations(userReservations);
     }
   };
 
@@ -76,19 +78,22 @@ export function StudentDashboard() {
       // Check if we already have this computer in myReservations
       const exists = prev.some(c => c.id === reservedComputer.id);
       if (!exists) {
-        console.log("Adding newly reserved computer to myReservations");
+        console.log("Adding newly reserved computer to myReservations:", reservedComputer);
         return [...prev, reservedComputer];
       }
       // If it already exists, update it
       return prev.map(c => c.id === reservedComputer.id ? reservedComputer : c);
     });
     
+    // Force refresh of reservations from main computers state
+    refreshReservations();
+    
     // Switch tab to "my-reservations" immediately to show the newly reserved computer
     console.log("Switching to my-reservations tab after successful reservation");
     setActiveTab("my-reservations");
   };
   
-  // Update reservations when tab changes
+  // Force refresh when tab changes to "my-reservations"
   useEffect(() => {
     console.log("Tab changed to:", activeTab);
     if (activeTab === "my-reservations") {
