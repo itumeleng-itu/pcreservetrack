@@ -3,8 +3,9 @@ import React, { useState, useEffect } from "react";
 import { ComputerGrid } from "../computers/ComputerGrid";
 import { Computer } from "@/types";
 import { Button } from "@/components/ui/button";
-import { RefreshCw, ChevronDown, ChevronUp } from "lucide-react";
+import { RefreshCw, ChevronDown, ChevronUp, AlertCircle } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface MyReservationsTabProps {
   myReservations: Computer[];
@@ -18,6 +19,7 @@ export function MyReservationsTab({
   const { currentUser } = useAuth();
   const [showDetails, setShowDetails] = useState(false);
   const [localReservations, setLocalReservations] = useState<Computer[]>([]);
+  const [lastRefreshed, setLastRefreshed] = useState<Date>(new Date());
   
   useEffect(() => {
     console.log("MyReservationsTab received reservations:", myReservations.length);
@@ -32,6 +34,11 @@ export function MyReservationsTab({
       console.log("Reservation users:", myReservations.map(r => r.reservedBy));
     }
   }, [myReservations, currentUser]);
+
+  const handleRefresh = () => {
+    refreshReservations();
+    setLastRefreshed(new Date());
+  };
 
   return (
     <div className="space-y-4">
@@ -51,7 +58,7 @@ export function MyReservationsTab({
         <Button 
           variant="outline" 
           size="sm"
-          onClick={refreshReservations}
+          onClick={handleRefresh}
           className="flex items-center gap-2"
         >
           <RefreshCw className="h-4 w-4" />
@@ -64,7 +71,17 @@ export function MyReservationsTab({
           <p>User ID: {currentUser?.id || 'Not logged in'}</p>
           <p>Reservations Count: {localReservations.length}</p>
           <p>Reservation IDs: {localReservations.map(r => r.id).join(', ') || 'None'}</p>
+          <p>Last refreshed: {lastRefreshed.toLocaleTimeString()}</p>
         </div>
+      )}
+      
+      {localReservations.length === 0 && (
+        <Alert className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 mb-4">
+          <AlertCircle className="h-4 w-4 text-blue-500" />
+          <AlertDescription className="text-sm">
+            If you've just made a reservation and don't see it here, try clicking the Refresh button above.
+          </AlertDescription>
+        </Alert>
       )}
       
       <ComputerGrid 

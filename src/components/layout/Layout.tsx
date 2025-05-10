@@ -1,5 +1,5 @@
 
-import React, { ReactNode } from "react";
+import React, { ReactNode, useEffect } from "react";
 import { Header } from "./Header";
 import { useAuth } from "@/context/AuthContext";
 
@@ -24,6 +24,17 @@ export function Layout({ children }: LayoutProps) {
         return "";
     }
   };
+
+  // Log user details for debugging
+  useEffect(() => {
+    if (currentUser) {
+      console.log("Layout: Current user logged in", {
+        id: currentUser.id,
+        role: currentUser.role,
+        name: currentUser.name
+      });
+    }
+  }, [currentUser]);
 
   return (
     <div className="min-h-screen flex flex-col dark:bg-gray-900">
