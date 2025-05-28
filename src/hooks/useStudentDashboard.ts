@@ -10,17 +10,18 @@ export function useStudentDashboard() {
   const [locationFilter, setLocationFilter] = useState("all");
   const [activeTab, setActiveTab] = useState("available");
 
-  // Memoized available computers with search and location filter
+  // Filter available computers directly from context
   const availableComputers = useMemo(() => {
-    return computers.filter(c =>
-      c.status === "available" &&
-      (locationFilter === "all" || c.location === locationFilter) &&
-      (c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        c.location.toLowerCase().includes(searchTerm.toLowerCase()))
+    return computers.filter(
+      c =>
+        c.status === "available" &&
+        (locationFilter === "all" || c.location === locationFilter) &&
+        (c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          c.location.toLowerCase().includes(searchTerm.toLowerCase()))
     );
   }, [computers, searchTerm, locationFilter]);
 
-  // Memoized user's reservations
+  // Filter user's reservations directly from context
   const myReservations = useMemo(() => {
     if (!currentUser) return [];
     return computers.filter(
@@ -28,27 +29,33 @@ export function useStudentDashboard() {
     );
   }, [computers, currentUser]);
 
-  // Memoized unique locations
+  // Get unique locations for the filter
   const locations = useMemo(
     () => Array.from(new Set(computers.map(c => c.location))),
     [computers]
   );
 
+  // Function to refresh the reservation list (no-op, context handles updates)
   const refreshReservations = () => {
+    // Optionally, you can trigger a context refresh if your context supports it
+    // For now, this is a no-op
     console.log("Refresh requested (no-op, context handles updates)");
   };
 
+  // Handle successful reservation by switching tabs
   const handleReservationSuccess = (reservedComputer: Computer) => {
-    console.log("Reservation success handler in StudentDashboard for computer:", reservedComputer.id);
     setActiveTab("my-reservations");
+    // No need to update local state, context will update and UI will re-render
   };
 
+  // Force refresh when tab changes to "my-reservations"
   useEffect(() => {
     if (activeTab === "my-reservations") {
       refreshReservations();
     }
   }, [activeTab]);
 
+  // Debug logs to track state
   useEffect(() => {
     console.log("Current dashboard state:", {
       allComputers: computers.length,
