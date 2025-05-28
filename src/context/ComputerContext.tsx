@@ -61,3 +61,5 @@ export const useComputerContext = () => {
   }
   return context;
 };
+
+export { useComputerContext as useComputers };
