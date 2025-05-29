@@ -84,10 +84,10 @@ export const ComputerProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-export const useComputerContext = () => {
+export const useComputers = () => {
   const context = useContext(ComputerContext);
   if (!context) {
-    throw new Error("useComputerContext must be used within a ComputerProvider");
+    throw new Error("useComputers must be used within a ComputerProvider");
   }
   return context;
 };
