@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -20,14 +21,11 @@ export const useAuthActions = () => {
     try {
       setIsLoading(true);
       
-      // Encode email for URL safety
-      const encodedEmail = encodeURIComponent(email);
-      
       // Check if user is already logged in on another device
       const { data: existingSession, error: sessionError } = await supabase
         .from('user_sessions')
         .select('*')
-        .eq('email', encodedEmail)
+        .eq('email', email)
         .single();
 
       if (sessionError && sessionError.code !== 'PGRST116') {
@@ -52,7 +50,7 @@ export const useAuthActions = () => {
             // Session on other device is considered inactive, we'll force logout
             await supabase.from('user_sessions')
               .delete()
-              .match({ email: encodedEmail });
+              .match({ email: email });
           }
         }
       }
@@ -76,7 +74,7 @@ export const useAuthActions = () => {
         await supabase.from('user_sessions')
           .upsert({
             user_id: data.user.id,
-            email: encodedEmail,
+            email: data.user.email,
             device_id: deviceId,
             last_active: new Date().toISOString()
           }, {

@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { ComputerGrid } from "../computers/ComputerGrid";
 import { ComputerTrackingTable } from "../tracking/ComputerTrackingTable";
@@ -12,11 +13,6 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recha
 import { ComputerStatus } from "@/types";
 import { RefreshCw } from "lucide-react";
 import { UserManagement } from "../admin/UserManagement";
-import { AvailableComputersTab } from "./AvailableComputersTab";
-import { MyReservationsTab } from "./MyReservationsTab";
-import { FaultyComputersTab } from "./FaultyComputersTab.tsx";
-import { InitializeDatabase } from "../admin/InitializeDatabase";
-import { useStudentDashboard } from "@/hooks/useStudentDashboard";
 
 export function AdminDashboard() {
   const { computers } = useComputers();
@@ -74,15 +70,6 @@ export function AdminDashboard() {
     { name: "Offline", value: offlineCount, color: "#6b7280" },
     { name: "Unknown", value: unknownCount, color: "#d1d5db" }
   ];
-
-  const {
-    availableComputers,
-    myReservations,
-    activeTab,
-    setActiveTab,
-    refreshReservations,
-    handleReservationSuccess
-  } = useStudentDashboard();
 
   return (
     <div className="space-y-6">
@@ -194,39 +181,61 @@ export function AdminDashboard() {
         </Card>
       </div>
       
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+      <Tabs defaultValue="computers" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="available">Available Computers</TabsTrigger>
-          <TabsTrigger value="my-reservations">My Reservations</TabsTrigger>
-          <TabsTrigger value="faulty">Faulty Computers</TabsTrigger>
-          <TabsTrigger value="admin">Admin</TabsTrigger>
+          <TabsTrigger value="computers">Computers</TabsTrigger>
+          <TabsTrigger value="tracking">Tracking Info</TabsTrigger>
+          <TabsTrigger value="users">User Management</TabsTrigger>
         </TabsList>
-
-        <TabsContent value="available">
-          <AvailableComputersTab
-            availableComputers={availableComputers}
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            locationFilter={locationFilter}
-            setLocationFilter={setLocationFilter}
-            locations={locations}
-            onReservationSuccess={handleReservationSuccess}
-          />
+        
+        <TabsContent value="computers">
+          <div className="space-y-4">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1">
+                <Input
+                  placeholder="Search computers..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              <div className="w-full md:w-48">
+                <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as ComputerStatus | "all")}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Filter by status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="available">Available</SelectItem>
+                    <SelectItem value="reserved">Reserved</SelectItem>
+                    <SelectItem value="faulty">Faulty</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="w-full md:w-48">
+                <Select value={locationFilter} onValueChange={setLocationFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Filter by location" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Locations</SelectItem>
+                    {locations.map(location => (
+                      <SelectItem key={location} value={location}>{location}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            
+            <ComputerGrid computers={filteredComputers} emptyMessage="No computers match your search criteria." />
+          </div>
         </TabsContent>
-
-        <TabsContent value="my-reservations">
-          <MyReservationsTab
-            myReservations={myReservations}
-            refreshReservations={refreshReservations}
-          />
+        
+        <TabsContent value="tracking">
+          <ComputerTrackingTable computers={computers} />
         </TabsContent>
-
-        <TabsContent value="faulty">
-          <FaultyComputersTab />
-        </TabsContent>
-
-        <TabsContent value="admin">
-          <InitializeDatabase />
+        
+        <TabsContent value="users">
+          <UserManagement />
         </TabsContent>
       </Tabs>
     </div>
