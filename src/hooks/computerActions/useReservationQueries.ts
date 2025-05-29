@@ -1,5 +1,4 @@
 import { Computer } from "@/types";
-import { mockReservations } from "@/services/mockData";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
