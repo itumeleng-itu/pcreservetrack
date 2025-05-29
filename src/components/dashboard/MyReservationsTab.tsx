@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { ComputerGrid } from "../computers/ComputerGrid";
 import { Computer } from "@/types";
@@ -21,30 +22,20 @@ export function MyReservationsTab({
   const [lastRefreshed, setLastRefreshed] = useState<Date>(new Date());
   
   useEffect(() => {
-    console.log("=== MyReservationsTab Debug Info ===");
-    console.log("Current User:", currentUser);
-    console.log("Received Reservations:", myReservations);
-    console.log("Reservations Count:", myReservations.length);
+    console.log("MyReservationsTab received reservations:", myReservations.length);
+    setLocalReservations(myReservations);
     
+    // Debug logging
     if (myReservations.length === 0) {
       console.log("No reservations found for current user:", currentUser?.id);
     } else {
-      console.log("Reservation Details:");
-      myReservations.forEach(reservation => {
-        console.log({
-          id: reservation.id,
-          status: reservation.status,
-          reservedBy: reservation.reservedBy,
-          reservedUntil: reservation.reservedUntil
-        });
-      });
+      console.log("Reservation IDs:", myReservations.map(r => r.id));
+      console.log("Reservation statuses:", myReservations.map(r => r.status));
+      console.log("Reservation users:", myReservations.map(r => r.reservedBy));
     }
-    
-    setLocalReservations(myReservations);
   }, [myReservations, currentUser]);
 
   const handleRefresh = () => {
-    console.log("Manual refresh triggered");
     refreshReservations();
     setLastRefreshed(new Date());
   };
@@ -78,11 +69,8 @@ export function MyReservationsTab({
       {showDetails && (
         <div className="p-4 bg-slate-100 dark:bg-slate-800 rounded-md text-sm font-mono overflow-auto max-h-40">
           <p>User ID: {currentUser?.id || 'Not logged in'}</p>
-          <p>User Role: {currentUser?.role || 'Not logged in'}</p>
           <p>Reservations Count: {localReservations.length}</p>
           <p>Reservation IDs: {localReservations.map(r => r.id).join(', ') || 'None'}</p>
-          <p>Reservation Statuses: {localReservations.map(r => r.status).join(', ') || 'None'}</p>
-          <p>Reserved By: {localReservations.map(r => r.reservedBy).join(', ') || 'None'}</p>
           <p>Last refreshed: {lastRefreshed.toLocaleTimeString()}</p>
         </div>
       )}
