@@ -1,6 +1,4 @@
-
 import { Computer, ComputerStatus } from "@/types";
-import { mockReservations } from "@/services/mockData";
 import { isWithinBookingHours, getBookingHoursMessage } from "@/utils/computerUtils";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
@@ -69,20 +67,40 @@ export const useReserveComputer = (
       
       console.log(`Creating reservation for computer ${computerId} until ${endTime.toISOString()}`);
       
-      // Create a new reservation record in mockReservations
-      const newReservation = {
-        id: String(mockReservations.length + 1),
-        computerId,
-        userId: currentUser.id,
-        startTime: new Date(),
-        endTime,
-        status: "active" as const
-      };
+      // Create a new reservation in the database
+      const { data: reservation, error: reservationError } = await supabase
+        .from('reservations')
+        .insert({
+          computer_id: parseInt(computerId),
+          user_id: currentUser.id,
+          reserved_at: new Date().toISOString(),
+          end_time: endTime.toISOString(),
+          status: 'active'
+        })
+        .select()
+        .single();
+
+      if (reservationError) {
+        console.error("Error creating reservation:", reservationError);
+        throw reservationError;
+      }
+
+      console.log("Reservation created:", reservation);
       
-      // Add to mock reservations
-      mockReservations.push(newReservation);
-      console.log("Reservation created:", newReservation);
-      console.log("All reservations:", mockReservations);
+      // Update the computer status in the database
+      const { error: computerError } = await supabase
+        .from('computers')
+        .update({
+          status: 'reserved',
+          reserved_by: currentUser.id,
+          reserved_until: endTime.toISOString()
+        })
+        .eq('id', parseInt(computerId));
+
+      if (computerError) {
+        console.error("Error updating computer status:", computerError);
+        throw computerError;
+      }
       
       let updatedComputer: Computer | null = null;
       

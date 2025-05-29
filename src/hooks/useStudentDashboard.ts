@@ -2,15 +2,17 @@ import { useState, useEffect } from "react";
 import { useComputers } from "@/context/ComputerContext";
 import { useAuth } from "@/context/AuthContext";
 import { Computer } from "@/types";
+import { supabase } from "@/integrations/supabase/client";
 
 export function useStudentDashboard() {
-  const { computers, refreshComputers } = useComputers();
+  const { computers } = useComputers();
   const { currentUser } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [locationFilter, setLocationFilter] = useState("all");
   const [myReservations, setMyReservations] = useState<Computer[]>([]);
   const [activeTab, setActiveTab] = useState("available");
   const [localComputers, setLocalComputers] = useState<Computer[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   
   // Immediately load user reservations on component mount and whenever computers state changes
   useEffect(() => {
@@ -23,14 +25,47 @@ export function useStudentDashboard() {
     
     // Fetch user's reservations if user is logged in
     if (currentUser) {
-      const userReservations = computers.filter(c => {
-        const isReserved = c.status === "reserved";
-        const isReservedByUser = c.reservedBy === currentUser.id;
-        console.log(`Computer ${c.id}: status=${c.status}, reservedBy=${c.reservedBy}, matches=${isReserved && isReservedByUser}`);
-        return isReserved && isReservedByUser;
-      });
-      console.log("Found user reservations:", userReservations.length, "computers - IDs:", userReservations.map(c => c.id));
-      setMyReservations(userReservations);
+      const fetchReservations = async () => {
+        setIsLoading(true);
+        try {
+          const { data: reservations, error } = await supabase
+            .from('reservations')
+            .select('*, computers(*)')
+            .eq('user_id', currentUser.id)
+            .eq('status', 'active');
+
+          if (error) {
+            console.error("Error fetching reservations:", error);
+            return;
+          }
+
+          // Map the database reservations to our Computer type
+          const userReservations = reservations.map(r => ({
+            id: String(r.computers.id),
+            name: r.computers.name,
+            location: r.computers.location || "",
+            status: "reserved" as const,
+            specs: typeof r.computers.specs === 'string' ? r.computers.specs : JSON.stringify(r.computers.specs),
+            reservedBy: currentUser.id,
+            reservedUntil: new Date(r.end_time),
+            faultDescription: r.computers.description || undefined,
+            isEmergency: false,
+            lastSeen: r.computers.last_maintenance ? new Date(r.computers.last_maintenance) : undefined,
+            ipAddress: undefined,
+            macAddress: undefined,
+            tracking: undefined
+          }));
+
+          console.log("Found user reservations:", userReservations.length, "computers - IDs:", userReservations.map(c => c.id));
+          setMyReservations(userReservations);
+        } catch (error) {
+          console.error("Error in fetchReservations:", error);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+
+      fetchReservations();
     }
   }, [computers, currentUser]);
   
@@ -43,13 +78,44 @@ export function useStudentDashboard() {
   // Function to refresh the reservation list
   const refreshReservations = async () => {
     console.log("Refreshing reservations manually");
-    await refreshComputers();
     if (currentUser) {
-      const userReservations = computers.filter(c => 
-        c.status === "reserved" && c.reservedBy === currentUser.id
-      );
-      console.log("Manual refresh - User reservations:", userReservations.map(c => c.id));
-      setMyReservations(userReservations);
+      setIsLoading(true);
+      try {
+        const { data: reservations, error } = await supabase
+          .from('reservations')
+          .select('*, computers(*)')
+          .eq('user_id', currentUser.id)
+          .eq('status', 'active');
+
+        if (error) {
+          console.error("Error fetching reservations:", error);
+          return;
+        }
+
+        // Map the database reservations to our Computer type
+        const userReservations = reservations.map(r => ({
+          id: String(r.computers.id),
+          name: r.computers.name,
+          location: r.computers.location || "",
+          status: "reserved" as const,
+          specs: typeof r.computers.specs === 'string' ? r.computers.specs : JSON.stringify(r.computers.specs),
+          reservedBy: currentUser.id,
+          reservedUntil: new Date(r.end_time),
+          faultDescription: r.computers.description || undefined,
+          isEmergency: false,
+          lastSeen: r.computers.last_maintenance ? new Date(r.computers.last_maintenance) : undefined,
+          ipAddress: undefined,
+          macAddress: undefined,
+          tracking: undefined
+        }));
+
+        console.log("Manual refresh - User reservations:", userReservations.map(c => c.id));
+        setMyReservations(userReservations);
+      } catch (error) {
+        console.error("Error in refreshReservations:", error);
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -67,11 +133,13 @@ export function useStudentDashboard() {
     
     // Add the reserved computer to myReservations immediately
     setMyReservations(prev => {
+      // Check if we already have this computer in myReservations
       const exists = prev.some(c => c.id === reservedComputer.id);
       if (!exists) {
         console.log("Adding newly reserved computer to myReservations:", reservedComputer);
         return [...prev, reservedComputer];
       }
+      // If it already exists, update it
       return prev.map(c => c.id === reservedComputer.id ? reservedComputer : c);
     });
     
@@ -106,12 +174,13 @@ export function useStudentDashboard() {
     setSearchTerm,
     locationFilter,
     setLocationFilter,
+    locations,
+    availableComputers,
     myReservations,
     activeTab,
     setActiveTab,
-    availableComputers,
-    locations,
     refreshReservations,
-    handleReservationSuccess
+    handleReservationSuccess,
+    isLoading
   };
 }
