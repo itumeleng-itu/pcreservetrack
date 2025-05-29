@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { ComputerGrid } from "../computers/ComputerGrid";
 import { ComputerTrackingTable } from "../tracking/ComputerTrackingTable";
@@ -12,7 +13,6 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recha
 import { ComputerStatus } from "@/types";
 import { RefreshCw } from "lucide-react";
 import { UserManagement } from "../admin/UserManagement";
-import { DatabaseManagement } from "../admin/DatabaseManagement";
 
 export function AdminDashboard() {
   const { computers } = useComputers();
@@ -186,7 +186,6 @@ export function AdminDashboard() {
           <TabsTrigger value="computers">Computers</TabsTrigger>
           <TabsTrigger value="tracking">Tracking Info</TabsTrigger>
           <TabsTrigger value="users">User Management</TabsTrigger>
-          <TabsTrigger value="database">Database</TabsTrigger>
         </TabsList>
         
         <TabsContent value="computers">
@@ -237,10 +236,6 @@ export function AdminDashboard() {
         
         <TabsContent value="users">
           <UserManagement />
-        </TabsContent>
-
-        <TabsContent value="database">
-          <DatabaseManagement />
         </TabsContent>
       </Tabs>
     </div>

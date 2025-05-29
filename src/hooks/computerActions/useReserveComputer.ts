@@ -1,17 +1,18 @@
-import { Computer } from "@/types";
+
+import { Computer, ComputerStatus } from "@/types";
+import { mockReservations } from "@/services/mockData";
 import { isWithinBookingHours, getBookingHoursMessage } from "@/utils/computerUtils";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
-import { useComputers } from "@/context/ComputerContext";
+import { supabase } from "@/integrations/supabase/client";
 
-export const useReserveComputer = () => {
+export const useReserveComputer = (
+  computers: Computer[], 
+  setComputers: (cb: (prev: Computer[]) => Computer[]) => void,
+  hasActiveReservation: (userId: string) => boolean
+) => {
   const { toast } = useToast();
   const { currentUser } = useAuth();
-  const { 
-    computers, 
-    reserveComputer: contextReserveComputer,
-    hasActiveReservation 
-  } = useComputers();
 
   const reserveComputer = async (computerId: string, hours: number): Promise<[boolean, Computer | null]> => {
     if (!currentUser) {
@@ -42,6 +43,7 @@ export const useReserveComputer = () => {
       return [false, null];
     }
 
+    // Check again if the computer is still available to prevent race conditions
     if (computerToReserve.status !== "available") {
       toast({
         title: "Reservation failed",
@@ -61,27 +63,69 @@ export const useReserveComputer = () => {
     }
 
     try {
-      const [success, updatedComputer] = await contextReserveComputer(computerId, hours, currentUser.id);
+      // Calculate reservation end time
+      const endTime = new Date();
+      endTime.setHours(endTime.getHours() + hours);
       
-      if (success && updatedComputer) {
-        toast({
-          title: "Reservation successful",
-          description: `Computer reserved until ${updatedComputer.reservedUntil?.toLocaleTimeString()}`,
+      console.log(`Creating reservation for computer ${computerId} until ${endTime.toISOString()}`);
+      
+      // Create a new reservation record in mockReservations
+      const newReservation = {
+        id: String(mockReservations.length + 1),
+        computerId,
+        userId: currentUser.id,
+        startTime: new Date(),
+        endTime,
+        status: "active" as const
+      };
+      
+      // Add to mock reservations
+      mockReservations.push(newReservation);
+      console.log("Reservation created:", newReservation);
+      console.log("All reservations:", mockReservations);
+      
+      let updatedComputer: Computer | null = null;
+      
+      // Update computers state to reflect the reservation immediately
+      setComputers(prevComputers => {
+        const updatedComputers = prevComputers.map(computer => {
+          if (computer.id === computerId) {
+            console.log(`Marking computer ${computerId} as reserved by ${currentUser.id}`);
+            updatedComputer = {
+              ...computer,
+              status: "reserved" as ComputerStatus,
+              reservedBy: currentUser.id,
+              reservedUntil: endTime
+            };
+            return updatedComputer;
+          }
+          return computer;
         });
-      } else {
-        toast({
-          title: "Reservation failed",
-          description: "An unexpected error occurred",
-          variant: "destructive",
-        });
+        return updatedComputers;
+      });
+
+      // Make sure to update the user session
+      try {
+        await supabase.from('user_sessions')
+          .update({ last_active: new Date().toISOString() })
+          .match({ user_id: currentUser.id });
+      } catch (error) {
+        console.error("Error updating user session:", error);
+        // Don't fail the reservation if this fails
       }
 
-      return [success, updatedComputer];
+      toast({
+        title: "Computer reserved",
+        description: `You have reserved a computer for ${hours} hour${hours > 1 ? 's' : ''}`,
+      });
+      
+      console.log("Reservation successful, returning updated computer:", updatedComputer);
+      return [true, updatedComputer]; 
     } catch (error) {
       console.error("Error reserving computer:", error);
       toast({
         title: "Reservation failed",
-        description: "An unexpected error occurred",
+        description: "There was an error processing your reservation",
         variant: "destructive",
       });
       return [false, null];
