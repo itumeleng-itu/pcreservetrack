@@ -1,10 +1,8 @@
+
 import { Computer } from "@/types";
 import { mockReservations } from "@/services/mockData";
-import { useAuth } from "@/context/AuthContext";
 
 export const useReservationQueries = (computers: Computer[]) => {
-  const { currentUser } = useAuth();
-
   const getAvailableComputers = () => {
     // Make sure we only return computers that are actually available
     const available = computers.filter(c => c.status === "available");
@@ -13,11 +11,10 @@ export const useReservationQueries = (computers: Computer[]) => {
   };
 
   const getReservedComputers = () => {
-    console.log("Fetching reserved computers for user:", currentUser?.id);
-    const reservedComputers = computers.filter(c => 
-      c.status === "reserved" && c.reservedBy === currentUser?.id
-    );
-    console.log("User's reserved computers:", reservedComputers.map(c => c.id));
+    // Make sure we return all reserved computers
+    console.log("Fetching reserved computers...");
+    const reservedComputers = computers.filter(c => c.status === "reserved");
+    console.log("Reserved computers:", reservedComputers.map(c => c.id));
     return reservedComputers;
   };
 
