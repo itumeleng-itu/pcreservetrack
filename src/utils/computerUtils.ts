@@ -1,6 +1,6 @@
-import { Computer, ComputerStatus } from "@/types";
+
+import { Computer } from "../types";
 import { isPublicHoliday, getPublicHolidayMessage } from "./dateUtils";
-import { supabase } from "@/integrations/supabase/client";
 
 // Generate 80 mock computers with iCentre1 and iCentre2 locations (40 each)
 export const generateExtendedComputers = (): Computer[] => {
@@ -83,83 +83,4 @@ export const getBookingHoursMessage = (): string => {
   }
   
   return "Booking is available from 8:00 AM to 4:00 PM.";
-};
-
-export const initializeComputers = async () => {
-  const computers = [
-    {
-      name: "PC-001",
-      location: "Lab A",
-      status: "available",
-      specs: {
-        cpu: "Intel i7",
-        ram: "16GB",
-        storage: "512GB SSD",
-        gpu: "NVIDIA RTX 3060"
-      }
-    },
-    {
-      name: "PC-002",
-      location: "Lab A",
-      status: "available",
-      specs: {
-        cpu: "Intel i7",
-        ram: "16GB",
-        storage: "512GB SSD",
-        gpu: "NVIDIA RTX 3060"
-      }
-    },
-    {
-      name: "PC-003",
-      location: "Lab B",
-      status: "available",
-      specs: {
-        cpu: "Intel i9",
-        ram: "32GB",
-        storage: "1TB SSD",
-        gpu: "NVIDIA RTX 3080"
-      }
-    },
-    {
-      name: "PC-004",
-      location: "Lab B",
-      status: "available",
-      specs: {
-        cpu: "Intel i9",
-        ram: "32GB",
-        storage: "1TB SSD",
-        gpu: "NVIDIA RTX 3080"
-      }
-    },
-    {
-      name: "PC-005",
-      location: "Lab C",
-      status: "available",
-      specs: {
-        cpu: "AMD Ryzen 9",
-        ram: "32GB",
-        storage: "1TB SSD",
-        gpu: "NVIDIA RTX 3090"
-      }
-    }
-  ];
-
-  try {
-    // Insert computers into the database
-    const { data, error } = await supabase
-      .from('computers')
-      .insert(computers)
-      .select();
-
-    if (error) {
-      console.error("Error initializing computers:", error);
-      return false;
-    }
-
-    console.log("Successfully initialized computers:", data);
-    return true;
-  } catch (error) {
-    console.error("Error in initializeComputers:", error);
-    return false;
-  }
 };
