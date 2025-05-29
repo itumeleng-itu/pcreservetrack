@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Computer } from "@/types";
+import { Computer, ComputerStatus } from "@/types";
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@/context/AuthContext";
 
 type ComputerContextType = {
   computers: Computer[];
@@ -17,6 +19,8 @@ export const ComputerProvider = ({ children }: { children: ReactNode }) => {
   const [computers, setComputers] = useState<Computer[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
+  const { currentUser } = useAuth();
 
   const fetchComputers = async () => {
     console.log("Fetching computers from Supabase...");
@@ -34,13 +38,16 @@ export const ComputerProvider = ({ children }: { children: ReactNode }) => {
       } else {
         console.log("Successfully fetched computers:", data);
         const transformedData = data.map(computer => ({
-          ...computer,
           id: String(computer.id),
-          reservedBy: computer.reserved_by,
-          reservedUntil: computer.reserved_until ? new Date(computer.reserved_until) : undefined,
-          specs: JSON.stringify(computer.specs)
+          name: computer.name,
+          location: computer.location || "",
+          status: (computer.reserved_by ? "reserved" : "available") as ComputerStatus,
+          specs: JSON.stringify(computer.specs),
+          reservedBy: computer.reserved_by || undefined,
+          reservedUntil: computer.reserved_until ? new Date(computer.reserved_until) : undefined
         }));
-        setComputers(transformedData as Computer[]);
+        console.log("Transformed computers:", transformedData);
+        setComputers(transformedData);
       }
     } catch (err) {
       console.error("Exception while fetching computers:", err);
@@ -55,15 +62,51 @@ export const ComputerProvider = ({ children }: { children: ReactNode }) => {
     fetchComputers();
   }, []);
 
-  const updateComputer = (computerId: string, updates: Partial<Computer>) => {
+  const updateComputer = async (computerId: string, updates: Partial<Computer>) => {
     console.log("Updating computer:", computerId, "with updates:", updates);
-    setComputers(prevComputers => 
-      prevComputers.map(computer => 
-        computer.id === computerId 
-          ? { ...computer, ...updates }
-          : computer
-      )
-    );
+    
+    try {
+      // Update in Supabase
+      const { error } = await supabase
+        .from("computers")
+        .update({
+          status: updates.status,
+          reserved_by: updates.reservedBy,
+          reserved_until: updates.reservedUntil?.toISOString()
+        })
+        .eq("id", parseInt(computerId));
+
+      if (error) {
+        console.error("Error updating computer in database:", error);
+        toast({
+          title: "Error",
+          description: "Failed to update computer status",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Update local state
+      setComputers(prevComputers => 
+        prevComputers.map(computer => 
+          computer.id === computerId 
+            ? { ...computer, ...updates }
+            : computer
+        )
+      );
+
+      toast({
+        title: "Success",
+        description: "Computer status updated successfully"
+      });
+    } catch (err) {
+      console.error("Error updating computer:", err);
+      toast({
+        title: "Error",
+        description: "Failed to update computer status",
+        variant: "destructive"
+      });
+    }
   };
 
   const refreshComputers = async () => {

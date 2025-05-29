@@ -1,11 +1,10 @@
-
 import { useState, useEffect } from "react";
 import { useComputers } from "@/context/ComputerContext";
 import { useAuth } from "@/context/AuthContext";
 import { Computer } from "@/types";
 
 export function useStudentDashboard() {
-  const { computers, getAvailableComputers } = useComputers();
+  const { computers, refreshComputers } = useComputers();
   const { currentUser } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [locationFilter, setLocationFilter] = useState("all");
@@ -16,15 +15,20 @@ export function useStudentDashboard() {
   // Immediately load user reservations on component mount and whenever computers state changes
   useEffect(() => {
     console.log("Computers state or user changed, updating reservations");
+    console.log("Current user:", currentUser);
+    console.log("All computers:", computers);
     
     // Update local computers state
     setLocalComputers(computers);
     
     // Fetch user's reservations if user is logged in
     if (currentUser) {
-      const userReservations = computers.filter(c => 
-        c.status === "reserved" && c.reservedBy === currentUser.id
-      );
+      const userReservations = computers.filter(c => {
+        const isReserved = c.status === "reserved";
+        const isReservedByUser = c.reservedBy === currentUser.id;
+        console.log(`Computer ${c.id}: status=${c.status}, reservedBy=${c.reservedBy}, matches=${isReserved && isReservedByUser}`);
+        return isReserved && isReservedByUser;
+      });
       console.log("Found user reservations:", userReservations.length, "computers - IDs:", userReservations.map(c => c.id));
       setMyReservations(userReservations);
     }
@@ -37,14 +41,13 @@ export function useStudentDashboard() {
   const locations = Array.from(new Set(localComputers.map(c => c.location)));
   
   // Function to refresh the reservation list
-  const refreshReservations = () => {
+  const refreshReservations = async () => {
     console.log("Refreshing reservations manually");
+    await refreshComputers();
     if (currentUser) {
-      // Get all reserved computers from main computers state, not local state
       const userReservations = computers.filter(c => 
         c.status === "reserved" && c.reservedBy === currentUser.id
       );
-      
       console.log("Manual refresh - User reservations:", userReservations.map(c => c.id));
       setMyReservations(userReservations);
     }
@@ -64,13 +67,11 @@ export function useStudentDashboard() {
     
     // Add the reserved computer to myReservations immediately
     setMyReservations(prev => {
-      // Check if we already have this computer in myReservations
       const exists = prev.some(c => c.id === reservedComputer.id);
       if (!exists) {
         console.log("Adding newly reserved computer to myReservations:", reservedComputer);
         return [...prev, reservedComputer];
       }
-      // If it already exists, update it
       return prev.map(c => c.id === reservedComputer.id ? reservedComputer : c);
     });
     
