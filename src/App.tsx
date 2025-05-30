@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,12 +6,14 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { ComputerProvider } from "./context/ComputerContext";
 import { TrackingProvider } from "./context/TrackingContext";
+import { NotificationProvider } from "./context/NotificationContext";
 import { useEffect } from "react";
 import Index from "./pages/Index";
 import AuthPage from "./pages/AuthPage";
 import Dashboard from "./pages/Dashboard";
 import ProfilePage from "./pages/ProfilePage";
 import NotFound from "./pages/NotFound";
+import { NotificationBanner } from "NotificationBanner";
 
 const queryClient = new QueryClient();
 const basePath = import.meta.env.MODE === 'production' ? '/pcreservetrack' : '';
@@ -39,13 +40,16 @@ const App = () => {
               <Toaster />
               <Sonner />
               <BrowserRouter basename={basePath}>
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/auth" element={<AuthPage />} />
-                  <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/profile" element={<ProfilePage />} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
+                <NotificationProvider>
+                  <NotificationBanner />
+                  <Routes>
+                    <Route path="/" element={<Index />} />
+                    <Route path="/auth" element={<AuthPage />} />
+                    <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/profile" element={<ProfilePage />} />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </NotificationProvider>
               </BrowserRouter>
             </TooltipProvider>
           </TrackingProvider>
