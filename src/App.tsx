@@ -13,7 +13,7 @@ import AuthPage from "./pages/AuthPage";
 import Dashboard from "./pages/Dashboard";
 import ProfilePage from "./pages/ProfilePage";
 import NotFound from "./pages/NotFound";
-import { NotificationBanner } from "NotificationBanner";
+import { NotificationBanner } from "./components/NotificationBanner";
 
 const queryClient = new QueryClient();
 const basePath = import.meta.env.MODE === 'production' ? '/pcreservetrack' : '';
