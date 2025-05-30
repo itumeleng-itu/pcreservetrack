@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -14,7 +13,7 @@ interface ReservationDialogProps {
 }
 
 export function ReservationDialog({ onReserve, onReservationSuccess, computer }: ReservationDialogProps) {
-  const [reservationHours, setReservationHours] = useState("0.25"); // Default to 15 minutes
+  const [reservationHours, setReservationHours] = useState("1"); // Default to 1 hour
   const [isReserving, setIsReserving] = useState(false);
   const [open, setOpen] = useState(false);
   
@@ -24,20 +23,14 @@ export function ReservationDialog({ onReserve, onReservationSuccess, computer }:
       const success = await onReserve(parseFloat(reservationHours));
       
       if (success) {
-        // Close dialog after successful reservation
         setOpen(false);
-        
-        // Create an updated computer object with the new reservation details
         const endTime = new Date();
         endTime.setHours(endTime.getHours() + parseFloat(reservationHours));
-        
         const updatedComputer: Computer = {
           ...computer,
           status: "reserved",
           reservedUntil: endTime
         };
-        
-        // Ensure we call the success callback with the updated computer
         if (onReservationSuccess) {
           console.log("Reservation successful, triggering callback with updated computer");
           onReservationSuccess(updatedComputer);
@@ -70,14 +63,12 @@ export function ReservationDialog({ onReserve, onReservationSuccess, computer }:
             <Select
               value={reservationHours}
               onValueChange={setReservationHours}
-              defaultValue="0.25"
+              defaultValue="1"
             >
               <SelectTrigger className="col-span-3">
                 <SelectValue placeholder="Select reservation time" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="0.25">15 minutes</SelectItem>
-                <SelectItem value="0.5">30 minutes</SelectItem>
                 <SelectItem value="1">1 hour</SelectItem>
                 <SelectItem value="2">2 hours</SelectItem>
               </SelectContent>
