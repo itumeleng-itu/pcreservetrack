@@ -14,12 +14,12 @@ import { ComputerStatus } from "@/types";
 import { RefreshCw } from "lucide-react";
 import { UserManagement } from "../admin/UserManagement";
 
-export function AdminDashboard() {
-  const { computers } = useComputers();
-  const { syncComputers, lastSync, isLoading } = useTracking();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<ComputerStatus | "all">("all");
-  const [locationFilter, setLocationFilter] = useState("all");
+export function AdminDashboard() { // AdminDashboard component
+  const { computers } = useComputers(); // Get computers from context
+  const { syncComputers, lastSync, isLoading } = useTracking(); // Get sync function and last sync time from context
+  const [searchTerm, setSearchTerm] = useState(""); // State for search term
+  const [statusFilter, setStatusFilter] = useState<ComputerStatus | "all">("all"); // State for status filter
+  const [locationFilter, setLocationFilter] = useState("all"); // State for location filter
   
   // Get unique locations for the filter
   const locations = Array.from(new Set(computers.map(c => c.location)));
@@ -48,7 +48,7 @@ export function AdminDashboard() {
     { name: "Faulty", value: faultyCount, color: "#ef4444" }
   ];
   
-  // Calculate utilization by location
+  // Calculate utilization by location 
   const locationData = locations.map(location => {
     const locComputers = computers.filter(c => c.location === location);
     const reservedInLoc = locComputers.filter(c => c.status === "reserved").length;
@@ -60,7 +60,7 @@ export function AdminDashboard() {
     };
   });
 
-  // Calculate online/offline statistics
+  // Calculate online/offline statistics 
   const onlineCount = computers.filter(c => c.tracking?.online).length;
   const offlineCount = computers.filter(c => c.tracking && !c.tracking.online).length;
   const unknownCount = computers.filter(c => c.tracking === undefined).length;

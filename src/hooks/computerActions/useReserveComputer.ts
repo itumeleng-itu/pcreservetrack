@@ -6,7 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
-export const useReserveComputer = (
+export const useReserveComputer = ( // This hook is used to reserve a computer
   computers: Computer[], 
   setComputers: (cb: (prev: Computer[]) => Computer[]) => void,
   hasActiveReservation: (userId: string) => boolean

@@ -8,7 +8,7 @@ import { MyReservationsTab } from "./MyReservationsTab";
 import { useStudentDashboard } from "@/hooks/useStudentDashboard";
 
 export function StudentDashboard() {
-  const {
+  const { //initialize the state and functions from the custom hook
     searchTerm,
     setSearchTerm,
     locationFilter,
@@ -20,13 +20,13 @@ export function StudentDashboard() {
     locations,
     refreshReservations,
     handleReservationSuccess
-  } = useStudentDashboard();
+  } = useStudentDashboard(); 
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
   };
 
-  return (
+  return ( // Return the main dashboard component
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold tracking-tight">Student Dashboard</h2>
@@ -39,7 +39,7 @@ export function StudentDashboard() {
         <TabsList>
           <TabsTrigger value="available" className="flex items-center gap-2">
             <ComputerIcon className="h-4 w-4" /> 
-            Available Computers
+            Available Computers 
           </TabsTrigger>
           <TabsTrigger value="my-reservations" className="flex items-center gap-2">
             <Clock className="h-4 w-4" /> 
