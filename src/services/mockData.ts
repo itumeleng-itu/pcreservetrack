@@ -111,3 +111,50 @@ export function getUserBadges(userId: string): string[] {
   const user = mutableUsers.find(u => u.id === userId);
   return Array.isArray(user?.badges) ? (user.badges as string[]).map(b => String(b)) : [];
 }
+
+// --- Virtual Queue Logic ---
+// Map of lab location to array of user IDs (queue order)
+export const labQueues: { [lab: string]: string[] } = {};
+
+// Add a student to a lab's queue
+export function joinLabQueue(lab: string, userId: string) {
+  if (!labQueues[lab]) labQueues[lab] = [];
+  if (!labQueues[lab].includes(userId)) {
+    labQueues[lab].push(userId);
+  }
+}
+
+// Remove a student from a lab's queue
+export function leaveLabQueue(lab: string, userId: string) {
+  if (!labQueues[lab]) return;
+  labQueues[lab] = labQueues[lab].filter(id => id !== userId);
+}
+
+// Get the current queue for a lab
+export function getLabQueue(lab: string): string[] {
+  return labQueues[lab] || [];
+}
+
+// When a PC is released in a fully reserved lab, auto-reserve for first in queue
+export function autoReserveForQueue(lab: string, computerId: string) {
+  const queue = labQueues[lab];
+  if (queue && queue.length > 0) {
+    const nextUserId = queue.shift();
+    // Find the computer and reserve it for the next user
+    const computer = mockComputers.find(c => c.id === computerId);
+    if (computer && nextUserId) {
+      computer.status = "reserved";
+      computer.reservedBy = nextUserId;
+      computer.reservedUntil = new Date(Date.now() + 3600000); // 1 hour from now
+      // Add a reservation record
+      mockReservations.push({
+        id: (mockReservations.length + 1).toString(),
+        computerId: computerId,
+        userId: nextUserId,
+        startTime: new Date(),
+        endTime: new Date(Date.now() + 3600000),
+        status: "active"
+      });
+    }
+  }
+}
