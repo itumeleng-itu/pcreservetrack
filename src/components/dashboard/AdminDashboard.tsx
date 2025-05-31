@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { ComputerGrid } from "../computers/ComputerGrid";
 import { ComputerTrackingTable } from "../tracking/ComputerTrackingTable";
@@ -13,6 +12,8 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recha
 import { ComputerStatus } from "@/types";
 import { RefreshCw } from "lucide-react";
 import { UserManagement } from "../admin/UserManagement";
+import { getLabQueue } from "@/services/mockData";
+import { mockUsers } from "@/services/mockData";
 
 export function AdminDashboard() { // AdminDashboard component
   const { computers } = useComputers(); // Get computers from context
@@ -93,6 +94,36 @@ export function AdminDashboard() { // AdminDashboard component
           Last synchronized: {new Date(lastSync).toLocaleString()}
         </p>
       )}
+      
+      {/* Lab Virtual Queues Section */}
+      <div className="bg-white dark:bg-slate-900 rounded-lg p-4 shadow space-y-2">
+        <h3 className="font-semibold text-lg mb-2">Lab Virtual Queues</h3>
+        {locations.length === 0 ? (
+          <span className="text-sm text-gray-500">No labs found.</span>
+        ) : (
+          <div className="space-y-2">
+            {locations.map(lab => (
+              <div key={lab} className="border-b pb-2 last:border-b-0">
+                <div className="font-medium">{lab}</div>
+                <ol className="list-decimal pl-5">
+                  {getLabQueue(lab).length === 0 ? (
+                    <li className="text-sm text-gray-500">No students in queue.</li>
+                  ) : (
+                    getLabQueue(lab).map((userId, idx) => {
+                      const user = mockUsers.find(u => u.id === userId);
+                      return (
+                        <li key={userId} className="text-sm">
+                          {user ? user.name : userId}
+                        </li>
+                      );
+                    })
+                  )}
+                </ol>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
       
       <div className="grid gap-4 grid-cols-1 lg:grid-cols-3">
         <Card>
