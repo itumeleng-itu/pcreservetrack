@@ -14,6 +14,8 @@ import { RefreshCw } from "lucide-react";
 import { UserManagement } from "../admin/UserManagement";
 import { getLabQueue } from "@/services/mockData";
 import { mockUsers } from "@/services/mockData";
+import { useToast } from "@/hooks/use-toast";
+import { autoReserveForQueue } from "@/services/mockData";
 
 export function AdminDashboard() { // AdminDashboard component
   const { computers } = useComputers(); // Get computers from context
@@ -21,6 +23,7 @@ export function AdminDashboard() { // AdminDashboard component
   const [searchTerm, setSearchTerm] = useState(""); // State for search term
   const [statusFilter, setStatusFilter] = useState<ComputerStatus | "all">("all"); // State for status filter
   const [locationFilter, setLocationFilter] = useState("all"); // State for location filter
+  const { toast } = useToast();
   
   // Get unique locations for the filter
   const locations = Array.from(new Set(computers.map(c => c.location)));
