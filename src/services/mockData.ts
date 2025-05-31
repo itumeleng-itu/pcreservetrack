@@ -169,3 +169,39 @@ export function autoReserveForQueue(lab: string, computerId: string, notify?: (u
     }
   }
 }
+
+// Simulate atomic reservation logic for a computer
+export function reserveComputerAtomic(computerId: string, userId: string): boolean {
+  type LockedComputer = Computer & { _lock?: boolean };
+  const computer = mockComputers.find(c => c.id === computerId) as LockedComputer | undefined;
+  // Add a temporary lock property if not present
+  if (computer && typeof computer._lock === 'undefined') {
+    computer._lock = false;
+  }
+  // If locked or not available, fail
+  if (!computer || computer.status !== 'available' || computer._lock) {
+    return false;
+  }
+  // Lock the computer for this operation
+  computer._lock = true;
+  // Double-check status after lock
+  if (computer.status !== 'available') {
+    computer._lock = false;
+    return false;
+  }
+  // Reserve the computer
+  computer.status = 'reserved';
+  computer.reservedBy = userId;
+  computer.reservedUntil = new Date(Date.now() + 3600000); // 1 hour from now
+  mockReservations.push({
+    id: (mockReservations.length + 1).toString(),
+    computerId: computerId,
+    userId: userId,
+    startTime: new Date(),
+    endTime: new Date(Date.now() + 3600000),
+    status: 'active'
+  });
+  // Unlock
+  computer._lock = false;
+  return true;
+}
