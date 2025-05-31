@@ -114,3 +114,39 @@ npm run lint
 ---
 
 **Maintained by:** [Your Name or Organization]
+
+## Leaderboard & Badges Features
+
+### Overview
+This project now includes a **Leaderboard** for the most responsible users and **Badges** for frequent users. These features are designed to encourage responsible computer usage and reward frequent/responsible users.
+
+### Features
+- **Leaderboard:**
+  - Shows the top 5 users with the fewest no-shows and late returns, and the most successful reservations.
+  - Appears at the top of the Student Dashboard (`src/components/dashboard/StudentDashboard.tsx`).
+- **Badges:**
+  - Users earn badges such as "Early Bird" (for early-morning reservations), "Night Owl" (for late-night reservations), and "Frequent User" (for 10+ successful reservations).
+  - Badges are displayed in the "My Badges" section on the Student Dashboard.
+
+### How It Works
+- **Mock Logic:**
+  - All leaderboard and badge logic is implemented in `src/services/mockData.ts` using a mutable in-memory user list.
+  - Functions:
+    - `getResponsibleLeaderboard()`: Returns a sorted list of users for the leaderboard.
+    - `getUserBadges(userId)`: Returns a string array of badge names for a user.
+    - `updateUserStats(userId, outcome)`: Updates user stats and assigns badges based on reservation outcomes.
+- **UI Integration:**
+  - The Student Dashboard imports and uses these functions to display the leaderboard and badges.
+  - The `Badge` component (`src/components/ui/badge.tsx`) is used for badge display.
+
+### Customization & Extension
+- To add new badges, update the `assignBadges` function in `mockData.ts`.
+- To change leaderboard ranking logic, update the `getResponsibleLeaderboard` function.
+- For production, replace the mock logic with real backend integration (e.g., Supabase).
+
+### Example Usage
+- The leaderboard and badges are automatically shown for all users on the Student Dashboard.
+- To test, update the mock user/reservation data in `mockData.ts` or call `updateUserStats` in your app logic.
+
+---
+For more details, see the code in `src/services/mockData.ts` and `src/components/dashboard/StudentDashboard.tsx`.
