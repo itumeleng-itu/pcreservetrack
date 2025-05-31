@@ -1,4 +1,3 @@
-
 import { Computer, ComputerStatus } from "@/types";
 import { mockReservations } from "@/services/mockData";
 import { isWithinBookingHours, getBookingHoursMessage } from "@/utils/computerUtils";
@@ -14,7 +13,7 @@ export const useReserveComputer = ( // This hook is used to reserve a computer
   const { toast } = useToast();
   const { currentUser } = useAuth();
 
-  const reserveComputer = async (computerId: string, hours: number): Promise<[boolean, Computer | null]> => {
+  const reserveComputer = async (computerId: string, startTime: Date, duration: number): Promise<[boolean, Computer | null]> => {
     if (!currentUser) {
       toast({
         title: "Authentication required",
@@ -43,11 +42,19 @@ export const useReserveComputer = ( // This hook is used to reserve a computer
       return [false, null];
     }
 
-    // Check again if the computer is still available to prevent race conditions
-    if (computerToReserve.status !== "available") {
+    // Check again if the computer is still available for the requested time slot
+    // Find all reservations for this computer
+    const overlapping = mockReservations.some(r =>
+      r.computerId === computerId &&
+      r.status === "active" &&
+      ((startTime < r.endTime && startTime >= r.startTime) || // starts during another reservation
+       (new Date(startTime.getTime() + duration * 60 * 60 * 1000) > r.startTime && new Date(startTime.getTime() + duration * 60 * 60 * 1000) <= r.endTime) || // ends during another reservation
+       (startTime <= r.startTime && new Date(startTime.getTime() + duration * 60 * 60 * 1000) >= r.endTime)) // fully overlaps
+    );
+    if (overlapping) {
       toast({
-        title: "Reservation failed",
-        description: "This computer is no longer available",
+        title: "Reservation conflict",
+        description: "This computer is already reserved for the selected time slot.",
         variant: "destructive",
       });
       return [false, null];
@@ -64,17 +71,16 @@ export const useReserveComputer = ( // This hook is used to reserve a computer
 
     try {
       // Calculate reservation end time
-      const endTime = new Date();
-      endTime.setHours(endTime.getHours() + hours);
+      const endTime = new Date(startTime.getTime() + duration * 60 * 60 * 1000);
       
-      console.log(`Creating reservation for computer ${computerId} until ${endTime.toISOString()}`);
+      console.log(`Creating reservation for computer ${computerId} from ${startTime.toISOString()} to ${endTime.toISOString()}`);
       
       // Create a new reservation record in mockReservations
       const newReservation = {
         id: String(mockReservations.length + 1),
         computerId,
         userId: currentUser.id,
-        startTime: new Date(),
+        startTime,
         endTime,
         status: "active" as const
       };
@@ -86,7 +92,7 @@ export const useReserveComputer = ( // This hook is used to reserve a computer
       
       let updatedComputer: Computer | null = null;
       
-      // Update computers state to reflect the reservation immediately
+      // Update computers state to reflect the reservation if it is for now or in the future
       setComputers(prevComputers => {
         const updatedComputers = prevComputers.map(computer => {
           if (computer.id === computerId) {
@@ -116,7 +122,7 @@ export const useReserveComputer = ( // This hook is used to reserve a computer
 
       toast({
         title: "Computer reserved",
-        description: `You have reserved a computer for ${hours} hour${hours > 1 ? 's' : ''}`,
+        description: `You have reserved a computer from ${startTime.toLocaleString()} for ${duration} hour${duration > 1 ? 's' : ''}`,
       });
       
       console.log("Reservation successful, returning updated computer:", updatedComputer);

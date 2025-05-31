@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { ReservationDialog } from "./ReservationDialog";
@@ -11,7 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 interface ComputerCardActionsProps {
   computer: Computer;
   currentUser: User | null;
-  onReserve: (hours: number) => Promise<boolean>;
+  onReserve: (startTime: Date, duration: number) => Promise<boolean>;
   onRelease: () => void;
   onReportFault: (description: string, isEmergency: boolean) => void;
   onFix: () => void;
@@ -62,7 +61,7 @@ export function ComputerCardActions({
     <div className="flex flex-wrap items-center gap-2 w-full">
       {isStudent && computer.status === "available" && isOnline && (
         <ReservationDialog 
-          onReserve={(hours) => onReserve(hours)}
+          onReserve={(startTime, duration) => onReserve(startTime, duration)}
           onReservationSuccess={handleReservationSuccess}
           computer={computer}
         />

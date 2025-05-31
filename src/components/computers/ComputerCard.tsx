@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Computer } from "@/types";
@@ -20,18 +19,11 @@ export function ComputerCard({ computer, onReservationSuccess }: ComputerCardPro
   const { reserveComputer, releaseComputer, reportFault, fixComputer } = useComputers();
   const { currentUser } = useAuth();
   
-  const handleReserve = async (hours: number): Promise<boolean> => {
-    console.log(`Attempting to reserve computer ${computer.id} for ${hours} hours`);
-    // Pass the computer ID and hours to the reserveComputer function
-    const [success, updatedComputer] = await reserveComputer(computer.id, hours);
-    console.log(`Reservation ${success ? 'successful' : 'failed'}`);
-    
-    // If reservation was successful and we have the updated computer, trigger the callback
+  const handleReserve = async (startTime: Date, duration: number): Promise<boolean> => {
+    const [success, updatedComputer] = await reserveComputer(computer.id, startTime, duration);
     if (success && updatedComputer && onReservationSuccess) {
-      console.log("Triggering onReservationSuccess callback from ComputerCard with updated computer", updatedComputer);
       onReservationSuccess(updatedComputer);
     }
-    
     return success;
   };
 

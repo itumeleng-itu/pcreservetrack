@@ -1,9 +1,8 @@
-
 import { Computer, ComputerStatus, ComputerTracking } from "./index";
 
 export interface ComputerContextType {
   computers: Computer[];
-  reserveComputer: (computerId: string, hours: number) => Promise<[boolean, Computer | null]>;
+  reserveComputer: (computerId: string, startTime: Date, duration: number) => Promise<[boolean, Computer | null]>;
   releaseComputer: (computerId: string) => void;
   reportFault: (computerId: string, description: string, isEmergency: boolean) => void;
   fixComputer: (computerId: string) => void;
