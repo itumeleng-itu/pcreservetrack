@@ -46,7 +46,7 @@ export function Layout({ children }: LayoutProps) {
       </main>
       <footer className="py-4 border-t bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300">
         <div className="container text-center text-xs text-gray-500 dark:text-gray-400">
-          &copy; {new Date().getFullYear()} ComputeHubReserve - All rights reserved
+          &copy; {new Date().getFullYear()} PCReserveTrack - All rights reserved
         </div>
       </footer>
     </div>
