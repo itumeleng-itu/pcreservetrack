@@ -136,7 +136,8 @@ export function getLabQueue(lab: string): string[] {
 }
 
 // When a PC is released in a fully reserved lab, auto-reserve for first in queue
-export function autoReserveForQueue(lab: string, computerId: string) {
+// Optionally accepts a notify callback: (userId, computer) => void
+export function autoReserveForQueue(lab: string, computerId: string, notify?: (userId: string, computer: Computer) => void) {
   const queue = labQueues[lab];
   if (queue && queue.length > 0) {
     const nextUserId = queue.shift();
@@ -155,6 +156,16 @@ export function autoReserveForQueue(lab: string, computerId: string) {
         endTime: new Date(Date.now() + 3600000),
         status: "active"
       });
+      // Notify the user (in-app or browser notification)
+      if (notify) {
+        notify(nextUserId, computer);
+      } else if (typeof window !== 'undefined' && window.Notification && Notification.permission === 'granted') {
+        new Notification('Auto-Reservation', {
+          body: `You have auto-reserved a computer: ${computer.name} (${computer.specs}) in ${computer.location}`
+        });
+      } else if (typeof window !== 'undefined') {
+        window.alert(`You have auto-reserved a computer: ${computer.name} (${computer.specs}) in ${computer.location}`);
+      }
     }
   }
 }
