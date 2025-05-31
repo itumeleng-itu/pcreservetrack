@@ -105,20 +105,20 @@ export function AdminDashboard() { // AdminDashboard component
             {locations.map(lab => (
               <div key={lab} className="border-b pb-2 last:border-b-0">
                 <div className="font-medium">{lab}</div>
-                <ol className="list-decimal pl-5">
-                  {getLabQueue(lab).length === 0 ? (
-                    <li className="text-sm text-gray-500">No students in queue.</li>
-                  ) : (
-                    getLabQueue(lab).map((userId, idx) => {
+                {getLabQueue(lab).length === 0 ? (
+                  <div className="text-sm text-gray-500">No students in queue.</div>
+                ) : (
+                  <ol className="list-decimal pl-5">
+                    {getLabQueue(lab).map((userId, idx) => {
                       const user = mockUsers.find(u => u.id === userId);
                       return (
                         <li key={userId} className="text-sm">
                           {user ? user.name : userId}
                         </li>
                       );
-                    })
-                  )}
-                </ol>
+                    })}
+                  </ol>
+                )}
               </div>
             ))}
           </div>
