@@ -263,8 +263,12 @@ export const useAuthActions = () => {
     try {
       setIsLoading(true);
       
+      // Get the current origin without hash
+      const currentOrigin = window.location.origin;
+      const redirectTo = `${currentOrigin}/auth?type=recovery`;
+      
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth?reset=true`,
+        redirectTo: redirectTo,
       });
       
       if (error) {
