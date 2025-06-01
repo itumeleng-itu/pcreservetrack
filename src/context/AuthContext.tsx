@@ -18,14 +18,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
-        console.log('Auth state changed:', event, currentSession?.user?.id);
-        
         setSession(currentSession);
-        
-        if (event === 'PASSWORD_RECOVERY') {
-          // Handle password recovery redirect
-          console.log('Password recovery event detected');
-        }
         
         if (currentSession?.user) {
           // Get user profile from registered table
