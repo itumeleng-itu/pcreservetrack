@@ -6,11 +6,11 @@ import { Layout } from "@/components/layout/Layout";
 import { StudentDashboard } from "@/components/dashboard/StudentDashboard";
 import { AdminDashboard } from "@/components/dashboard/AdminDashboard";
 import { TechnicianDashboard } from "@/components/dashboard/TechnicianDashboard";
-import { useComputers } from "@/context/ComputerContext";
+import { useSupabaseComputers } from "@/context/SupabaseComputerContext";
 
 const Dashboard = () => {
   const { currentUser, isAuthenticated } = useAuth();
-  const { updateComputersFromTracking } = useComputers();
+  const { updateComputersFromTracking } = useSupabaseComputers();
 
   // Debug log to see when Dashboard is re-rendered
   useEffect(() => {

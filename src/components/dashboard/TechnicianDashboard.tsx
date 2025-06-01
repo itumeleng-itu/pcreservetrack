@@ -1,13 +1,13 @@
 
 import React from "react";
 import { ComputerGrid } from "../computers/ComputerGrid";
-import { useComputers } from "@/context/ComputerContext";
+import { useSupabaseComputers } from "@/context/SupabaseComputerContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, CheckCircle2 } from "lucide-react";
 
 export function TechnicianDashboard() {
-  const { computers, getFaultyComputers } = useComputers();
+  const { computers, getFaultyComputers } = useSupabaseComputers();
   
   const faultyComputers = getFaultyComputers();
   const repairableCount = faultyComputers.length;
