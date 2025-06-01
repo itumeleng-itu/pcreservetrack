@@ -13,41 +13,92 @@ export type Database = {
         Row: {
           created_at: string | null
           description: string | null
+          fault_description: string | null
           id: number
+          ip_address: string | null
+          is_emergency: boolean | null
           last_maintenance: string | null
+          last_seen: string | null
           location: string | null
+          mac_address: string | null
           name: string
           reserved_by: string | null
           reserved_until: string | null
-          specs: Json | null
+          specs: string | null
           status: string
+          tracking_cpu_usage: number | null
+          tracking_last_heartbeat: string | null
+          tracking_memory_usage: number | null
+          tracking_online: boolean | null
           updated_at: string | null
         }
         Insert: {
           created_at?: string | null
           description?: string | null
+          fault_description?: string | null
           id?: number
+          ip_address?: string | null
+          is_emergency?: boolean | null
           last_maintenance?: string | null
+          last_seen?: string | null
           location?: string | null
+          mac_address?: string | null
           name: string
           reserved_by?: string | null
           reserved_until?: string | null
-          specs?: Json | null
+          specs?: string | null
           status?: string
+          tracking_cpu_usage?: number | null
+          tracking_last_heartbeat?: string | null
+          tracking_memory_usage?: number | null
+          tracking_online?: boolean | null
           updated_at?: string | null
         }
         Update: {
           created_at?: string | null
           description?: string | null
+          fault_description?: string | null
           id?: number
+          ip_address?: string | null
+          is_emergency?: boolean | null
           last_maintenance?: string | null
+          last_seen?: string | null
           location?: string | null
+          mac_address?: string | null
           name?: string
           reserved_by?: string | null
           reserved_until?: string | null
-          specs?: Json | null
+          specs?: string | null
           status?: string
+          tracking_cpu_usage?: number | null
+          tracking_last_heartbeat?: string | null
+          tracking_memory_usage?: number | null
+          tracking_online?: boolean | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      lab_queue: {
+        Row: {
+          created_at: string | null
+          id: string
+          lab_name: string
+          position: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          lab_name: string
+          position: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          lab_name?: string
+          position?: number
+          user_id?: string
         }
         Relationships: []
       }
@@ -102,6 +153,36 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          created_at: string | null
+          id: string
+          message: string
+          read: boolean | null
+          title: string
+          type: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          message: string
+          read?: boolean | null
+          title: string
+          type?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          message?: string
+          read?: boolean | null
+          title?: string
+          type?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -129,15 +210,43 @@ export type Database = {
         }
         Relationships: []
       }
+      queues: {
+        Row: {
+          id: number
+          joined_at: string | null
+          lab_id: string
+          position: number | null
+          user_id: string
+        }
+        Insert: {
+          id?: number
+          joined_at?: string | null
+          lab_id: string
+          position?: number | null
+          user_id: string
+        }
+        Update: {
+          id?: number
+          joined_at?: string | null
+          lab_id?: string
+          position?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       registered: {
         Row: {
           avatar_url: string | null
           created_at: string | null
           email: string
           id: string
+          is_deleted: boolean | null
+          late_return_count: number | null
           name: string
+          no_show_count: number | null
           role: string
           staff_num: string | null
+          successful_reservations: number | null
           updated_at: string | null
         }
         Insert: {
@@ -145,9 +254,13 @@ export type Database = {
           created_at?: string | null
           email: string
           id: string
+          is_deleted?: boolean | null
+          late_return_count?: number | null
           name: string
+          no_show_count?: number | null
           role: string
           staff_num?: string | null
+          successful_reservations?: number | null
           updated_at?: string | null
         }
         Update: {
@@ -155,9 +268,13 @@ export type Database = {
           created_at?: string | null
           email?: string
           id?: string
+          is_deleted?: boolean | null
+          late_return_count?: number | null
           name?: string
+          no_show_count?: number | null
           role?: string
           staff_num?: string | null
+          successful_reservations?: number | null
           updated_at?: string | null
         }
         Relationships: []
@@ -246,6 +363,27 @@ export type Database = {
         }
         Relationships: []
       }
+      user_badges: {
+        Row: {
+          badge_name: string
+          earned_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          badge_name: string
+          earned_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          badge_name?: string
+          earned_at?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_sessions: {
         Row: {
           created_at: string | null
@@ -278,6 +416,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      register_user: {
+        Args: { email: string; user_id: string }
+        Returns: undefined
+      }
       reserve_computer: {
         Args: {
           p_computer_id: number
