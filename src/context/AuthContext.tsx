@@ -12,7 +12,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const { login, register, logout, resetPassword } = useAuthActions();
+  const { login, register, logout, resetPassword, deleteAccount } = useAuthActions();
 
   // Set up authentication listener
   useEffect(() => {
@@ -54,6 +54,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         .from('registered')
         .select('*')
         .eq('id', userId)
+        .eq('is_deleted', false) // Only get non-deleted users
         .single();
 
       if (error) {
@@ -85,6 +86,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         logout,
         register,
         resetPassword,
+        deleteAccount,
         isAuthenticated: !!currentUser,
         isLoading
       }}

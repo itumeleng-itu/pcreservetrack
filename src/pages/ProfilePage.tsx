@@ -1,6 +1,8 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
+import { useAuthActions } from "@/hooks/useAuthActions";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,7 +21,8 @@ import {
 import { useNavigate } from "react-router-dom";
 
 const ProfilePage = () => {
-  const { currentUser, logout } = useAuth();
+  const { currentUser } = useAuth();
+  const { deleteAccount } = useAuthActions();
   const { toast } = useToast();
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -137,34 +140,11 @@ const ProfilePage = () => {
   };
 
   const handleDeleteAccount = async () => {
-    if (!currentUser) return;
-    
-    try {
-      // Delete the user from Supabase auth
-      const { error } = await supabase.auth.admin.deleteUser(currentUser.id);
-      
-      if (error) {
-        throw error;
-      }
-      
-      toast({
-        title: "Account Deleted",
-        description: "Your account has been successfully deleted.",
-      });
-      
-      // Log out the user and redirect to the home page
-      await logout();
+    const success = await deleteAccount();
+    if (success) {
       navigate('/');
-    } catch (error) {
-      console.error("Error deleting account:", error);
-      toast({
-        title: "Delete Failed",
-        description: "There was an error deleting your account. Please try again later.",
-        variant: "destructive",
-      });
-    } finally {
-      setDeleteDialogOpen(false);
     }
+    setDeleteDialogOpen(false);
   };
 
   return (
