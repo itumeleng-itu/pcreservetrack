@@ -170,8 +170,58 @@ export const userService = {
     
     if (error) throw error;
     
-    // Call function to assign badges
-    await supabase.rpc('assign_user_badges', { target_user_id: userId });
+    // Assign badges based on updated stats
+    await this.assignUserBadges(userId);
+  },
+
+  async assignUserBadges(userId: string): Promise<void> {
+    const stats = await this.getUserStats(userId);
+    
+    // Frequent User badge (10+ successful reservations)
+    if (stats.successfulReservations >= 10) {
+      await supabase
+        .from('user_badges')
+        .upsert({
+          user_id: userId,
+          badge_name: 'Frequent User'
+        });
+    }
+    
+    // Check for Early Bird badge (3+ reservations before 9am)
+    const { data: earlyReservations } = await supabase
+      .from('reservations')
+      .select('reserved_at')
+      .eq('user_id', userId)
+      .eq('status', 'completed');
+    
+    if (earlyReservations) {
+      const earlyBirdCount = earlyReservations.filter(r => 
+        new Date(r.reserved_at).getHours() < 9
+      ).length;
+      
+      if (earlyBirdCount >= 3) {
+        await supabase
+          .from('user_badges')
+          .upsert({
+            user_id: userId,
+            badge_name: 'Early Bird'
+          });
+      }
+      
+      // Night Owl badge (3+ reservations after 9pm)
+      const nightOwlCount = earlyReservations.filter(r => 
+        new Date(r.reserved_at).getHours() >= 21
+      ).length;
+      
+      if (nightOwlCount >= 3) {
+        await supabase
+          .from('user_badges')
+          .upsert({
+            user_id: userId,
+            badge_name: 'Night Owl'
+          });
+      }
+    }
   },
 
   async getUserBadges(userId: string): Promise<string[]> {
