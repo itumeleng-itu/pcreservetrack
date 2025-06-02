@@ -1,4 +1,3 @@
-
 import { isWithinInterval } from "date-fns";
 
 // Public holidays for illustration - in a real app, this would come from an API or database
@@ -17,18 +16,25 @@ const PUBLIC_HOLIDAYS_2024 = [
   { name: "Day of Goodwill", date: new Date(2024, 11, 26) }, // December 26
 ];
 
-export const isPublicHoliday = (date: Date): { isHoliday: boolean; holidayName?: string } => {
-  const holiday = PUBLIC_HOLIDAYS_2024.find(
-    (holiday) => holiday.date.toDateString() === date.toDateString()
-  );
+export const isPublicHoliday = (date?: Date): { isHoliday: boolean; name?: string } => {
+  if (!date) {
+    return { isHoliday: false };
+  }
+
+  const dateString = date.toDateString();
+  const holiday = PUBLIC_HOLIDAYS_2024.find(h => h.date.toDateString() === dateString);
   
   return {
     isHoliday: !!holiday,
-    holidayName: holiday?.name
+    name: holiday?.name
   };
 };
 
-export const getPublicHolidayMessage = (date: Date): string | null => {
-  const { isHoliday, holidayName } = isPublicHoliday(date);
-  return isHoliday ? `Booking not available - ${holidayName}` : null;
+export const getPublicHolidayMessage = (date?: Date): string | null => {
+  if (!date) {
+    return null;
+  }
+
+  const { isHoliday, name } = isPublicHoliday(date);
+  return isHoliday ? `Closed for ${name}` : null;
 };

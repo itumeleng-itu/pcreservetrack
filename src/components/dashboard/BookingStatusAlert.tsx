@@ -1,12 +1,12 @@
-
 import React from "react";
 import { Clock, AlertCircle } from "lucide-react";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { isWithinBookingHours, getBookingHoursMessage } from "@/utils/computerUtils";
 
 export function BookingStatusAlert() {
-  const bookingAvailable = isWithinBookingHours();
-  const bookingMessage = getBookingHoursMessage();
+  const now = new Date();
+  const bookingAvailable = isWithinBookingHours(now);
+  const bookingMessage = getBookingHoursMessage(now) || "Unable to determine booking hours";
   
   return (
     <Alert className={bookingAvailable ? 

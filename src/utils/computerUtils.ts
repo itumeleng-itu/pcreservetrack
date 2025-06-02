@@ -1,4 +1,3 @@
-
 import { Computer } from "../types";
 import { isPublicHoliday, getPublicHolidayMessage } from "./dateUtils";
 
@@ -33,16 +32,14 @@ export const generateExtendedComputers = (): Computer[] => {
 };
 
 // Utility function to check if the current time is within booking hours
-export const isWithinBookingHours = (): boolean => {
-  const now = new Date();
-  
+export const isWithinBookingHours = (date: Date): boolean => {
   // Check if it's a public holiday
-  if (isPublicHoliday(now).isHoliday) {
+  if (isPublicHoliday(date).isHoliday) {
     return false;
   }
   
-  const dayOfWeek = now.getDay(); // 0 is Sunday, 1 is Monday, etc.
-  const hour = now.getHours();
+  const dayOfWeek = date.getDay(); // 0 is Sunday, 1 is Monday, etc.
+  const hour = date.getHours();
   
   // Check if it's Sunday (closed)
   if (dayOfWeek === 0) {
@@ -63,16 +60,14 @@ export const isWithinBookingHours = (): boolean => {
 };
 
 // Get formatted booking hours message based on the current day
-export const getBookingHoursMessage = (): string => {
-  const now = new Date();
-  
+export const getBookingHoursMessage = (date: Date): string => {
   // Check for public holiday first
-  const holidayMessage = getPublicHolidayMessage(now);
+  const holidayMessage = getPublicHolidayMessage(date);
   if (holidayMessage) {
     return holidayMessage;
   }
   
-  const dayOfWeek = now.getDay();
+  const dayOfWeek = date.getDay();
   
   if (dayOfWeek === 0) {
     return "Booking is closed on Sundays.";

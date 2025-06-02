@@ -71,7 +71,7 @@ export function ReservationDialog({ onReserve, onReservationSuccess, computer }:
               className="col-span-3 border rounded px-2 py-1"
               value={startTime}
               min={new Date().toISOString().slice(0, 16)}
-              onChange={e => setStartTime(e.target.value)}
+              onChange={(e) => setStartTime(e.target.value)}
               required
             />
           </div>

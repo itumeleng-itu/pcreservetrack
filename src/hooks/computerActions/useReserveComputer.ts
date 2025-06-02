@@ -23,10 +23,11 @@ export const useReserveComputer = ( // This hook is used to reserve a computer
       return [false, null];
     }
 
-    if (!isWithinBookingHours()) {
+    // Validate the selected time slot is within reservation hours
+    if (!isWithinBookingHours(startTime)) {
       toast({
-        title: "Outside booking hours",
-        description: getBookingHoursMessage(),
+        title: "Invalid reservation time",
+        description: `The selected time is outside booking hours. ${getBookingHoursMessage(startTime)}`,
         variant: "destructive",
       });
       return [false, null];
