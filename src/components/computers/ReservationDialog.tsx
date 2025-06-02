@@ -16,8 +16,19 @@ export function ReservationDialog({ onReserve, onReservationSuccess, computer }:
   const [reservationHours, setReservationHours] = useState("1"); // Default to 1 hour
   const [startTime, setStartTime] = useState(() => {
     const now = new Date();
-    now.setMinutes(0, 0, 0);
-    return now.toISOString().slice(0, 16); // yyyy-MM-ddTHH:mm
+    // Convert to GMT+2 by adding 2 hours (7200000 milliseconds)
+    const gmtPlus2 = new Date(now.getTime() + 7200000);
+    
+    // Round to next 30 minutes
+    const minutes = gmtPlus2.getMinutes();
+    if (minutes < 30) {
+      gmtPlus2.setMinutes(30, 0, 0);
+    } else {
+      gmtPlus2.setHours(gmtPlus2.getHours() + 1);
+      gmtPlus2.setMinutes(0, 0, 0);
+    }
+    
+    return gmtPlus2.toISOString().slice(0, 16); // yyyy-MM-ddTHH:mm
   });
   const [isReserving, setIsReserving] = useState(false);
   const [open, setOpen] = useState(false);
@@ -70,7 +81,7 @@ export function ReservationDialog({ onReserve, onReservationSuccess, computer }:
               id="startTime"
               className="col-span-3 border rounded px-2 py-1"
               value={startTime}
-              min={new Date().toISOString().slice(0, 16)}
+              min={new Date(new Date().getTime() + 7200000).toISOString().slice(0, 16)}
               onChange={(e) => setStartTime(e.target.value)}
               required
             />
