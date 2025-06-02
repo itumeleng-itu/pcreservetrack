@@ -13,7 +13,7 @@ interface ComputerCardActionsProps {
   currentUser: User | null;
   onReserve: (startTime: Date, duration: number) => Promise<boolean>;
   onRelease: () => void;
-  onReportFault: (description: string, isEmergency: boolean) => void;
+  onReportFault: (description: string, isEmergency: boolean) => Promise<boolean | void>;
   onFix: () => void;
   onReservationSuccess?: (updatedComputer: Computer) => void;
 }
@@ -100,7 +100,7 @@ export function ComputerCardActions({
         <Button 
           size="sm" 
           variant="destructive" 
-          onClick={onRelease}
+          onClick={handleRelease}
           className="flex items-center gap-1"
         >
           <X className="h-4 w-4" /> Force Release

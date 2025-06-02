@@ -19,14 +19,14 @@ export const useSupabaseFaults = (
    * Production-grade fault reporting with retry logic and comprehensive error handling
    * Implements idempotency, validation, and robust error recovery
    */
-  const reportFault = async (computerId: string, description: string, isEmergency: boolean = false) => {
+  const reportFault = async (computerId: string, description: string, isEmergency: boolean = false): Promise<boolean> => {
     if (!currentUser) {
       toast({
         title: "Authentication Required",
         description: "Please sign in to report issues",
         variant: "destructive",
       });
-      return;
+      return false;
     }
 
     // Frontend validation
@@ -36,7 +36,7 @@ export const useSupabaseFaults = (
         description: "Please provide a detailed description (at least 10 characters)",
         variant: "destructive",
       });
-      return;
+      return false;
     }
 
     if (description.trim().length > 1000) {
@@ -45,7 +45,7 @@ export const useSupabaseFaults = (
         description: "Please limit your description to 1000 characters",
         variant: "destructive",
       });
-      return;
+      return false;
     }
 
     // Generate idempotency key
