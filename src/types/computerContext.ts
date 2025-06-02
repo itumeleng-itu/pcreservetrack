@@ -1,4 +1,3 @@
-
 import { Computer, ComputerStatus, ComputerTracking } from "./index";
 
 export interface ComputerContextType {
@@ -13,5 +12,4 @@ export interface ComputerContextType {
   hasActiveReservation: (userId: string) => boolean;
   isComputerAlreadyReserved: (computerId: string) => boolean;
   updateComputersFromTracking: (trackingData: ComputerTracking[]) => void;
-  refreshComputers: () => Promise<void>;
 }

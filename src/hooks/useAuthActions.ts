@@ -37,7 +37,7 @@ export const useAuthActions = () => {
       if (existingSession) {
         if (existingSession.device_id !== deviceId) {
           const lastActive = new Date(existingSession.last_active);
-          const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+          const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000); // Reduced from 10 to 5 minutes
           
           if (lastActive > fiveMinutesAgo) {
             toast({
@@ -112,71 +112,18 @@ export const useAuthActions = () => {
     try {
       setIsLoading(true);
       
-      // Check if user previously existed and was deleted
-      const { data: existingUser } = await supabase
-        .from('registered')
-        .select('*')
-        .eq('email', email)
-        .single();
-
-      let authData;
-      let authError;
-
-      if (existingUser) {
-        // User exists, try to sign them in (they might have been soft-deleted)
-        const signInResult = await supabase.auth.signInWithPassword({
-          email,
-          password
-        });
-        
-        if (signInResult.error) {
-          // If sign in fails, try to sign up (the auth user might have been deleted)
-          const signUpResult = await supabase.auth.signUp({
-            email,
-            password,
-            options: {
-              data: {
-                name,
-                role,
-                staff_num: identificationNumber
-              }
-            }
-          });
-          authData = signUpResult.data;
-          authError = signUpResult.error;
-        } else {
-          authData = signInResult.data;
-          authError = signInResult.error;
-        }
-
-        // Reactivate the user profile if it was soft-deleted
-        if (authData.user) {
-          await supabase
-            .from('registered')
-            .update({
-              name,
-              role,
-              staff_num: identificationNumber,
-              is_deleted: false
-            })
-            .eq('email', email);
-        }
-      } else {
-        // New user, normal registration
-        const signUpResult = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: {
-              name,
-              role,
-              staff_num: identificationNumber
-            }
+      // Sign up the user with auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name,
+            role,
+            staff_num: identificationNumber
           }
-        });
-        authData = signUpResult.data;
-        authError = signUpResult.error;
-      }
+        }
+      });
 
       if (authError) {
         toast({
@@ -188,20 +135,19 @@ export const useAuthActions = () => {
       }
 
       if (authData.user) {
+        // Registration successful - the trigger will create the profile
         // Store current device as the active session
         const deviceId = getDeviceId();
-        await supabase.from('user_sessions').upsert({
+        await supabase.from('user_sessions').insert({
           user_id: authData.user.id,
           email,
           device_id: deviceId,
           last_active: new Date().toISOString()
-        }, {
-          onConflict: 'email'
         });
 
         toast({
           title: "Registration successful",
-          description: existingUser ? "Your account has been reactivated" : "Your account has been created",
+          description: "Your account has been created",
         });
         return true;
       }
@@ -263,12 +209,8 @@ export const useAuthActions = () => {
     try {
       setIsLoading(true);
       
-      // Get the current origin without hash
-      const currentOrigin = window.location.origin;
-      const redirectTo = `${currentOrigin}/auth?type=recovery`;
-      
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: redirectTo,
+        redirectTo: window.location.origin + '/auth?reset=true',
       });
       
       if (error) {
@@ -298,62 +240,11 @@ export const useAuthActions = () => {
     }
   };
 
-  const deleteAccount = async (): Promise<boolean> => {
-    try {
-      setIsLoading(true);
-      
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error("No authenticated user found");
-      }
-
-      // Soft delete the user profile instead of trying to delete auth user
-      const { error: profileError } = await supabase
-        .from('registered')
-        .update({ is_deleted: true })
-        .eq('id', user.id);
-
-      if (profileError) {
-        throw profileError;
-      }
-
-      // Clear user sessions
-      await supabase
-        .from('user_sessions')
-        .delete()
-        .match({ user_id: user.id });
-
-      // Sign out the user
-      const { error: signOutError } = await supabase.auth.signOut();
-      if (signOutError) {
-        console.error("Sign out error:", signOutError);
-      }
-
-      toast({
-        title: "Account deleted",
-        description: "Your account has been successfully deleted",
-      });
-      
-      return true;
-    } catch (error) {
-      console.error("Delete account error:", error);
-      toast({
-        title: "Delete failed",
-        description: "There was an error deleting your account. Please try again later.",
-        variant: "destructive",
-      });
-      return false;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   return {
     login,
     register,
     logout,
     resetPassword,
-    deleteAccount,
     isLoading,
   };
 };

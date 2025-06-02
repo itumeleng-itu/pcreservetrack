@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { Computer, ComputerTracking } from "../types";
-import { useSupabaseComputers } from "./SupabaseComputerContext";
+import { useComputers } from "./ComputerContext";
 import { useToast } from "@/hooks/use-toast";
 
 interface TrackingContextType {
@@ -17,7 +17,7 @@ export const TrackingProvider = ({ children }: { children: ReactNode }) => {
   const [trackingData, setTrackingData] = useState<ComputerTracking[]>([]);
   const [lastSync, setLastSync] = useState<Date | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const { computers, updateComputersFromTracking } = useSupabaseComputers();
+  const { computers, updateComputersFromTracking } = useComputers();
   const { toast } = useToast();
 
   // Simulated fetch to get computer tracking data
@@ -40,7 +40,7 @@ export const TrackingProvider = ({ children }: { children: ReactNode }) => {
       setTrackingData(data);
       setLastSync(new Date());
       
-      // Update computer status in SupabaseComputerContext based on tracking data
+      // Update computer status in ComputerContext based on tracking data
       updateComputersFromTracking(data);
       
       toast({

@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { ReservationDialog } from "./ReservationDialog";
@@ -13,7 +12,7 @@ interface ComputerCardActionsProps {
   currentUser: User | null;
   onReserve: (startTime: Date, duration: number) => Promise<boolean>;
   onRelease: () => void;
-  onReportFault: (description: string, isEmergency: boolean) => Promise<boolean | void>;
+  onReportFault: (description: string, isEmergency: boolean) => void;
   onFix: () => void;
   onReservationSuccess?: (updatedComputer: Computer) => void;
 }
@@ -91,8 +90,7 @@ export function ComputerCardActions({
         </Button>
       )}
       
-      {/* Allow all users (including students) to report issues on any computer */}
-      {computer.status !== "faulty" && (
+      {isStudent && computer.status !== "faulty" && (
         <ReportIssueDialog onReportIssue={onReportFault} />
       )}
       
@@ -100,7 +98,7 @@ export function ComputerCardActions({
         <Button 
           size="sm" 
           variant="destructive" 
-          onClick={handleRelease}
+          onClick={onRelease}
           className="flex items-center gap-1"
         >
           <X className="h-4 w-4" /> Force Release

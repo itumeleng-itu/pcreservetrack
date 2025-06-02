@@ -7,7 +7,6 @@ export interface AuthContextType {
   logout: () => void;
   register: (name: string, email: string, password: string, role: UserRole, identificationNumber: string) => Promise<boolean>;
   resetPassword: (email: string) => Promise<boolean>;
-  deleteAccount: () => Promise<boolean>;
   isAuthenticated: boolean;
   isLoading: boolean;
 }
