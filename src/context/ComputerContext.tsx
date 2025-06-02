@@ -23,6 +23,11 @@ export const ComputerProvider = ({ children }: { children: ReactNode }) => {
     updateComputersFromTracking
   } = useComputerActions(initialComputers);
 
+  // Add a mock refreshComputers function for compatibility
+  const refreshComputers = async () => {
+    console.log("Mock refresh computers called");
+  };
+
   return (
     <ComputerContext.Provider
       value={{
@@ -36,7 +41,8 @@ export const ComputerProvider = ({ children }: { children: ReactNode }) => {
         getFaultyComputers,
         hasActiveReservation,
         isComputerAlreadyReserved,
-        updateComputersFromTracking
+        updateComputersFromTracking,
+        refreshComputers
       }}
     >
       {children}

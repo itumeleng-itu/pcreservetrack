@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { ReservationDialog } from "./ReservationDialog";
@@ -90,7 +91,8 @@ export function ComputerCardActions({
         </Button>
       )}
       
-      {isStudent && computer.status !== "faulty" && (
+      {/* Allow all users (including students) to report issues on any computer */}
+      {computer.status !== "faulty" && (
         <ReportIssueDialog onReportIssue={onReportFault} />
       )}
       

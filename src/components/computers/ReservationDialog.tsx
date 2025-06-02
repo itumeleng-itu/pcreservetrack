@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -17,25 +18,42 @@ export function ReservationDialog({ onReserve, onReservationSuccess, computer }:
   const [startTime, setStartTime] = useState(() => {
     const now = new Date();
     now.setMinutes(0, 0, 0);
+    // Ensure start time is within booking hours (8 AM - 10 PM)
+    if (now.getHours() < 8) {
+      now.setHours(8);
+    } else if (now.getHours() >= 22) {
+      now.setDate(now.getDate() + 1);
+      now.setHours(8);
+    }
     return now.toISOString().slice(0, 16); // yyyy-MM-ddTHH:mm
   });
   const [isReserving, setIsReserving] = useState(false);
   const [open, setOpen] = useState(false);
   
   const handleReserve = async () => {
+    const start = new Date(startTime);
+    const duration = parseFloat(reservationHours);
+    const end = new Date(start.getTime() + duration * 60 * 60 * 1000);
+    
+    // Validate booking hours
+    if (start.getHours() < 8 || start.getHours() >= 22) {
+      return;
+    }
+    
+    if (end.getHours() > 22 || (end.getHours() === 22 && end.getMinutes() > 0)) {
+      return;
+    }
+    
     setIsReserving(true);
     try {
-      const start = new Date(startTime);
-      const duration = parseFloat(reservationHours);
       const success = await onReserve(start, duration);
       if (success) {
         setOpen(false);
-        const endTime = new Date(start);
-        endTime.setHours(endTime.getHours() + duration);
         const updatedComputer: Computer = {
           ...computer,
           status: "reserved",
-          reservedUntil: endTime
+          reservedBy: undefined, // Will be set by the backend
+          reservedUntil: end
         };
         if (onReservationSuccess) {
           onReservationSuccess(updatedComputer);
@@ -48,6 +66,36 @@ export function ReservationDialog({ onReserve, onReservationSuccess, computer }:
     }
   };
 
+  // Calculate minimum start time (must be within booking hours)
+  const getMinStartTime = () => {
+    const now = new Date();
+    if (now.getHours() < 8) {
+      now.setHours(8, 0, 0, 0);
+    } else if (now.getHours() >= 22) {
+      now.setDate(now.getDate() + 1);
+      now.setHours(8, 0, 0, 0);
+    }
+    return now.toISOString().slice(0, 16);
+  };
+
+  // Calculate maximum end time to ensure it doesn't exceed 10 PM
+  const getMaxEndTime = () => {
+    const start = new Date(startTime);
+    const maxEnd = new Date(start);
+    maxEnd.setHours(22, 0, 0, 0);
+    return maxEnd;
+  };
+
+  const isValidReservation = () => {
+    const start = new Date(startTime);
+    const duration = parseFloat(reservationHours);
+    const end = new Date(start.getTime() + duration * 60 * 60 * 1000);
+    
+    return start.getHours() >= 8 && 
+           start.getHours() < 22 && 
+           (end.getHours() < 22 || (end.getHours() === 22 && end.getMinutes() === 0));
+  };
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -57,7 +105,7 @@ export function ReservationDialog({ onReserve, onReservationSuccess, computer }:
         <DialogHeader>
           <DialogTitle>Reserve Computer</DialogTitle>
           <DialogDescription>
-            Choose your reservation start time and duration.
+            Choose your reservation start time and duration. Reservations are only allowed between 8:00 AM and 10:00 PM.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
@@ -70,7 +118,7 @@ export function ReservationDialog({ onReserve, onReservationSuccess, computer }:
               id="startTime"
               className="col-span-3 border rounded px-2 py-1"
               value={startTime}
-              min={new Date().toISOString().slice(0, 16)}
+              min={getMinStartTime()}
               onChange={e => setStartTime(e.target.value)}
               required
             />
@@ -94,9 +142,17 @@ export function ReservationDialog({ onReserve, onReservationSuccess, computer }:
               </SelectContent>
             </Select>
           </div>
+          {!isValidReservation() && (
+            <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
+              Reservation must be between 8:00 AM and 10:00 PM
+            </div>
+          )}
         </div>
         <DialogFooter>
-          <Button onClick={handleReserve} disabled={isReserving}>
+          <Button 
+            onClick={handleReserve} 
+            disabled={isReserving || !isValidReservation()}
+          >
             {isReserving ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

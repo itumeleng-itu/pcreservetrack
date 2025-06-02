@@ -13,17 +13,20 @@ interface ReportIssueDialogProps {
 export function ReportIssueDialog({ onReportIssue }: ReportIssueDialogProps) {
   const [faultDescription, setFaultDescription] = useState("");
   const [isEmergency, setIsEmergency] = useState(false);
+  const [open, setOpen] = useState(false);
   
   const handleReportFault = () => {
     if (faultDescription.trim()) {
       onReportIssue(faultDescription, isEmergency);
+      // Reset form and close dialog
       setFaultDescription("");
       setIsEmergency(false);
+      setOpen(false);
     }
   };
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button size="sm" variant="outline">Report Issue</Button>
       </DialogTrigger>
@@ -42,6 +45,7 @@ export function ReportIssueDialog({ onReportIssue }: ReportIssueDialogProps) {
               placeholder="Describe the issue..."
               value={faultDescription}
               onChange={(e) => setFaultDescription(e.target.value)}
+              required
             />
           </div>
           <div className="flex items-center space-x-2">
@@ -56,7 +60,12 @@ export function ReportIssueDialog({ onReportIssue }: ReportIssueDialogProps) {
           </div>
         </div>
         <DialogFooter>
-          <Button onClick={handleReportFault}>Report</Button>
+          <Button 
+            onClick={handleReportFault}
+            disabled={!faultDescription.trim()}
+          >
+            Report Issue
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

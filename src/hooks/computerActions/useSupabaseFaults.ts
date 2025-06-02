@@ -16,8 +16,34 @@ export const useSupabaseFaults = (
   };
 
   const reportFault = async (computerId: string, description: string, isEmergency: boolean = false) => {
+    if (!currentUser) {
+      toast({
+        title: "Authentication required",
+        description: "Please login to report an issue",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
-      // Cancel any active reservation
+      // Create fault record in database
+      const { data: faultRecord, error: faultError } = await supabase
+        .from('faults')
+        .insert({
+          computer_id: parseInt(computerId),
+          description: description,
+          reported_by: parseInt(currentUser.id), // Note: This assumes reported_by is integer
+          status: 'reported'
+        })
+        .select()
+        .single();
+
+      if (faultError) {
+        console.error("Error creating fault record:", faultError);
+        // Continue with computer update even if fault record fails
+      }
+
+      // Cancel any active reservation for this computer
       await supabase
         .from('reservations')
         .update({ status: 'cancelled' })
@@ -39,11 +65,13 @@ export const useSupabaseFaults = (
         description: `The ${emergencyText}issue has been reported to technicians`,
         variant: isEmergency ? "destructive" : "default",
       });
+
+      console.log("Fault reported successfully:", faultRecord);
     } catch (error) {
       console.error("Error reporting fault:", error);
       toast({
         title: "Error",
-        description: "Failed to report fault",
+        description: "Failed to report fault. Please try again.",
         variant: "destructive",
       });
     }
@@ -60,6 +88,13 @@ export const useSupabaseFaults = (
     }
 
     try {
+      // Update fault status in database
+      await supabase
+        .from('faults')
+        .update({ status: 'resolved' })
+        .eq('computer_id', parseInt(computerId))
+        .eq('status', 'reported');
+
       await updateComputer(computerId, {
         status: "available" as ComputerStatus,
         faultDescription: undefined,

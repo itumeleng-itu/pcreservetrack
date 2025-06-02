@@ -1,3 +1,4 @@
+
 import { Computer, ComputerStatus } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
@@ -30,10 +31,12 @@ export const useSupabaseReservations = (
       return [false, null];
     }
 
-    if (!isWithinBookingHours()) {
+    // Check if reservation start time is within booking hours
+    const reservationHour = startTime.getHours();
+    if (reservationHour < 8 || reservationHour >= 22) {
       toast({
         title: "Outside booking hours",
-        description: getBookingHoursMessage(),
+        description: "Reservations can only be made between 8:00 AM and 10:00 PM",
         variant: "destructive",
       });
       return [false, null];
@@ -51,7 +54,16 @@ export const useSupabaseReservations = (
     try {
       const endTime = new Date(startTime.getTime() + duration * 60 * 60 * 1000);
       
-      // Start a transaction-like approach
+      // Check if end time exceeds booking hours
+      if (endTime.getHours() >= 22 && endTime.getMinutes() > 0) {
+        toast({
+          title: "Reservation exceeds booking hours",
+          description: "Reservations must end by 10:00 PM",
+          variant: "destructive",
+        });
+        return [false, null];
+      }
+      
       // First, check if computer is still available
       const { data: computerCheck } = await supabase
         .from('computers')
@@ -68,14 +80,15 @@ export const useSupabaseReservations = (
         return [false, null];
       }
 
-      // Create reservation record first
+      // Create reservation record first with proper start_time and end_time
       const { data: reservation, error: reservationError } = await supabase
         .from('reservations')
         .insert({
           computer_id: parseInt(computerId),
           user_id: currentUser.id,
-          reserved_at: startTime.toISOString(),
+          start_time: startTime.toISOString(),
           end_time: endTime.toISOString(),
+          reserved_at: new Date().toISOString(),
           status: 'active'
         })
         .select()
@@ -118,9 +131,10 @@ export const useSupabaseReservations = (
 
       toast({
         title: "Computer reserved",
-        description: `You have reserved a computer from ${startTime.toLocaleString()} for ${duration} hour${duration > 1 ? 's' : ''}`,
+        description: `Computer reserved from ${startTime.toLocaleString()} for ${duration} hour${duration > 1 ? 's' : ''}`,
       });
 
+      console.log("Reservation successful in database:", reservation);
       return [true, updatedComputer];
     } catch (error) {
       console.error("Error reserving computer:", error);
