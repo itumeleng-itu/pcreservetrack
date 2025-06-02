@@ -5,11 +5,29 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 import { Computer } from "@/types";
+import { addMinutes, setMinutes, setSeconds, setMilliseconds } from 'date-fns';
 
 interface ReservationDialogProps {
   onReserve: (startTime: Date, duration: number) => Promise<boolean>;
   onReservationSuccess?: (computer: Computer) => void;
   computer: Computer;
+}
+
+function roundToNext30Minutes(date: Date) {
+  // Convert to GMT+2
+  const gmt2 = new Date(date.getTime() + 2 * 60 * 60 * 1000);
+  const minutes = gmt2.getMinutes();
+  if (minutes === 0 || minutes === 30) {
+    gmt2.setSeconds(0, 0);
+    return gmt2;
+  }
+  if (minutes < 30) {
+    gmt2.setMinutes(30, 0, 0);
+  } else {
+    gmt2.setHours(gmt2.getHours() + 1);
+    gmt2.setMinutes(0, 0, 0);
+  }
+  return gmt2;
 }
 
 export function ReservationDialog({ onReserve, onReservationSuccess, computer }: ReservationDialogProps) {
@@ -57,6 +75,12 @@ export function ReservationDialog({ onReserve, onReservationSuccess, computer }:
     } finally {
       setIsReserving(false);
     }
+  };
+
+  // When user changes the start time, always round to next 30 min and convert to GMT+2
+  const handleStartTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputDate = new Date(e.target.value);
+    setStartTime(roundToNext30Minutes(inputDate).toISOString().slice(0, 16));
   };
 
   return (
