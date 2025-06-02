@@ -69,17 +69,28 @@ export const useSupabaseFaults = (
           .from('faults')
           .select('id, status')
           .eq('computer_id', parseInt(computerId))
-          .eq('reported_by', currentUser.id)
           .eq('status', 'reported')
           .gte('created_at', new Date(Date.now() - 30 * 60 * 1000).toISOString()); // Last 30 minutes
 
         if (existingFaults && existingFaults.length > 0) {
           toast({
             title: "Duplicate Report",
-            description: "You have already reported an issue for this computer recently",
+            description: "An issue has already been reported for this computer recently",
             variant: "destructive",
           });
           return false;
+        }
+
+        // First, get the user's ID from the registered table to match the schema
+        const { data: userData, error: userError } = await supabase
+          .from('registered')
+          .select('id')
+          .eq('id', currentUser.id)
+          .single();
+
+        if (userError || !userData) {
+          console.error("Failed to get user data:", userError);
+          throw new Error("User not found in registered table");
         }
 
         // STEP 1: Create fault record with comprehensive logging
@@ -88,7 +99,7 @@ export const useSupabaseFaults = (
           .insert({
             computer_id: parseInt(computerId),
             description: description.trim(),
-            reported_by: parseInt(currentUser.id), // Convert to integer to match schema
+            reported_by: userData.id, // Use the ID from registered table
             status: 'reported'
           })
           .select()
