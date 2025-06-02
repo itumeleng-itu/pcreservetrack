@@ -7,10 +7,14 @@ import { StudentDashboard } from "@/components/dashboard/StudentDashboard";
 import { AdminDashboard } from "@/components/dashboard/AdminDashboard";
 import { TechnicianDashboard } from "@/components/dashboard/TechnicianDashboard";
 import { useSupabaseComputers } from "@/context/SupabaseComputerContext";
+import { useRealtimeUpdates } from "@/hooks/useRealtimeUpdates";
 
 const Dashboard = () => {
   const { currentUser, isAuthenticated } = useAuth();
-  const { updateComputersFromTracking } = useSupabaseComputers();
+  const { updateComputersFromTracking, refreshComputers } = useSupabaseComputers();
+  
+  // Initialize real-time updates
+  useRealtimeUpdates();
 
   // Debug log to see when Dashboard is re-rendered
   useEffect(() => {
@@ -20,7 +24,7 @@ const Dashboard = () => {
     const refreshData = async () => {
       try {
         // This will update any computer tracking data and trigger necessary state updates
-        await updateComputersFromTracking([]);
+        await refreshComputers();
         console.log("Dashboard: Refreshed computer data");
       } catch (error) {
         console.error("Error refreshing computer data:", error);
@@ -29,8 +33,13 @@ const Dashboard = () => {
     
     if (currentUser) {
       refreshData();
+      
+      // Set up periodic refresh every 2 minutes
+      const refreshInterval = setInterval(refreshData, 120000);
+      
+      return () => clearInterval(refreshInterval);
     }
-  }, [currentUser, updateComputersFromTracking]);
+  }, [currentUser, refreshComputers]);
 
   if (!isAuthenticated) {
     return <Navigate to="/auth" />;

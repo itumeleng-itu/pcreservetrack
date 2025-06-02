@@ -1,4 +1,3 @@
-
 import { Computer, ComputerStatus } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
@@ -52,7 +51,24 @@ export const useSupabaseReservations = (
     try {
       const endTime = new Date(startTime.getTime() + duration * 60 * 60 * 1000);
       
-      // Create reservation in database
+      // Start a transaction-like approach
+      // First, check if computer is still available
+      const { data: computerCheck } = await supabase
+        .from('computers')
+        .select('status, reserved_by, reserved_until')
+        .eq('id', parseInt(computerId))
+        .single();
+
+      if (computerCheck?.status !== 'available') {
+        toast({
+          title: "Reservation failed",
+          description: "This computer is no longer available",
+          variant: "destructive",
+        });
+        return [false, null];
+      }
+
+      // Create reservation record first
       const { data: reservation, error: reservationError } = await supabase
         .from('reservations')
         .insert({
@@ -65,14 +81,40 @@ export const useSupabaseReservations = (
         .select()
         .single();
 
-      if (reservationError) throw reservationError;
+      if (reservationError) {
+        console.error("Reservation creation error:", reservationError);
+        throw reservationError;
+      }
 
-      // Update computer status
+      // Update computer status using the database function
+      const { data: reserveResult, error: reserveError } = await supabase
+        .rpc('reserve_computer', {
+          p_computer_id: parseInt(computerId),
+          p_user_id: currentUser.id,
+          p_reserved_until: endTime.toISOString()
+        });
+
+      if (reserveError || !reserveResult) {
+        // If computer update fails, clean up the reservation
+        await supabase
+          .from('reservations')
+          .delete()
+          .eq('id', reservation.id);
+        
+        throw new Error("Failed to reserve computer - it may have been taken by another user");
+      }
+
+      // Update local computer state
       const updatedComputer = await updateComputer(computerId, {
         status: "reserved" as ComputerStatus,
         reservedBy: currentUser.id,
         reservedUntil: endTime
       });
+
+      // Update user session to keep them active
+      await supabase.from('user_sessions')
+        .update({ last_active: new Date().toISOString() })
+        .eq('user_id', currentUser.id);
 
       toast({
         title: "Computer reserved",
@@ -84,7 +126,7 @@ export const useSupabaseReservations = (
       console.error("Error reserving computer:", error);
       toast({
         title: "Reservation failed",
-        description: "There was an error processing your reservation",
+        description: error instanceof Error ? error.message : "There was an error processing your reservation",
         variant: "destructive",
       });
       return [false, null];
@@ -93,12 +135,16 @@ export const useSupabaseReservations = (
 
   const releaseComputer = async (computerId: string) => {
     try {
-      // Update reservation status
-      await supabase
+      // Update reservation status in database
+      const { error: reservationError } = await supabase
         .from('reservations')
         .update({ status: 'completed' })
         .eq('computer_id', parseInt(computerId))
         .eq('status', 'active');
+
+      if (reservationError) {
+        console.error("Error updating reservation:", reservationError);
+      }
 
       // Update computer status
       await updateComputer(computerId, {
@@ -111,6 +157,11 @@ export const useSupabaseReservations = (
       if (currentUser) {
         await userService.updateUserStats(currentUser.id, 'success');
       }
+
+      // Update user session
+      await supabase.from('user_sessions')
+        .update({ last_active: new Date().toISOString() })
+        .eq('user_id', currentUser.id);
 
       toast({
         title: "Computer released",

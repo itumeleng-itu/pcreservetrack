@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/context/AuthContext";
@@ -8,6 +8,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { ArrowLeft, Loader2 } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
 
 const forgotPasswordSchema = z.object({
   email: z.string().email("Please enter a valid email address")
@@ -23,6 +24,7 @@ export const ForgotPassword = ({ onBack }: ForgotPasswordProps) => {
   const { resetPassword } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [resetSent, setResetSent] = useState(false);
+  const [searchParams] = useSearchParams();
 
   const form = useForm<ForgotPasswordFormValues>({
     resolver: zodResolver(forgotPasswordSchema),
@@ -30,6 +32,17 @@ export const ForgotPassword = ({ onBack }: ForgotPasswordProps) => {
       email: ""
     }
   });
+
+  // Check for error parameters in URL
+  useEffect(() => {
+    const error = searchParams.get('error');
+    const errorDescription = searchParams.get('error_description');
+    
+    if (error === 'access_denied' && errorDescription?.includes('expired')) {
+      console.log('Password reset link expired or invalid');
+      // The user will see the form to request a new reset link
+    }
+  }, [searchParams]);
 
   const onSubmit = async (data: ForgotPasswordFormValues) => {
     setIsSubmitting(true);
@@ -60,6 +73,11 @@ export const ForgotPassword = ({ onBack }: ForgotPasswordProps) => {
         <p className="text-sm text-gray-500 mt-1">
           Enter your email address and we'll send you a link to reset your password
         </p>
+        {searchParams.get('error') === 'access_denied' && (
+          <p className="text-sm text-orange-600 mt-2 p-2 bg-orange-50 rounded">
+            Your previous password reset link has expired. Please request a new one below.
+          </p>
+        )}
       </div>
 
       {resetSent ? (
