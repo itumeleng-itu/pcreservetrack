@@ -78,6 +78,48 @@ export type Database = {
         }
         Relationships: []
       }
+      faults: {
+        Row: {
+          computer_id: number | null
+          created_at: string | null
+          description: string
+          id: number
+          reported_by: number | null
+          status: string | null
+        }
+        Insert: {
+          computer_id?: number | null
+          created_at?: string | null
+          description: string
+          id?: never
+          reported_by?: number | null
+          status?: string | null
+        }
+        Update: {
+          computer_id?: number | null
+          created_at?: string | null
+          description?: string
+          id?: never
+          reported_by?: number | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "faults_computer_id_fkey"
+            columns: ["computer_id"]
+            isOneToOne: false
+            referencedRelation: "computers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "faults_reported_by_fkey"
+            columns: ["reported_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lab_queue: {
         Row: {
           created_at: string | null
@@ -286,7 +328,9 @@ export type Database = {
           end_time: string | null
           id: number
           notes: string | null
+          reservation_code: string
           reserved_at: string
+          start_time: string
           status: string
           updated_at: string | null
           user_id: string
@@ -297,7 +341,9 @@ export type Database = {
           end_time?: string | null
           id?: number
           notes?: string | null
+          reservation_code?: string
           reserved_at?: string
+          start_time?: string
           status?: string
           updated_at?: string | null
           user_id: string
@@ -308,7 +354,9 @@ export type Database = {
           end_time?: string | null
           id?: number
           notes?: string | null
+          reservation_code?: string
           reserved_at?: string
+          start_time?: string
           status?: string
           updated_at?: string | null
           user_id?: string
@@ -416,16 +464,27 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_reservation_code: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       register_user: {
         Args: { email: string; user_id: string }
         Returns: undefined
       }
       reserve_computer: {
-        Args: {
-          p_computer_id: number
-          p_user_id: string
-          p_reserved_until: string
-        }
+        Args:
+          | {
+              p_computer_id: number
+              p_user_id: string
+              p_reserved_until: string
+            }
+          | {
+              p_computer_id: number
+              p_user_id: string
+              p_start_time: string
+              p_end_time: string
+            }
         Returns: boolean
       }
     }

@@ -17,7 +17,8 @@ export const SupabaseComputerProvider = ({ children }: { children: ReactNode }) 
     releaseComputer,
     reportFault,
     fixComputer,
-    updateComputersFromTracking
+    updateComputersFromTracking,
+    refreshComputers
   } = useSupabaseComputerActions();
 
   return (
@@ -33,7 +34,8 @@ export const SupabaseComputerProvider = ({ children }: { children: ReactNode }) 
         getFaultyComputers,
         hasActiveReservation,
         isComputerAlreadyReserved,
-        updateComputersFromTracking
+        updateComputersFromTracking,
+        refreshComputers
       }}
     >
       {children}
