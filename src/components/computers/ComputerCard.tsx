@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Computer } from "@/types";
@@ -38,8 +37,8 @@ export function ComputerCard({ computer, onReservationSuccess }: ComputerCardPro
     }
   };
 
-  const handleReportFault = (description: string, isEmergency: boolean) => {
-    reportFault(computer.id, description, isEmergency);
+  const handleReportFault = async (description: string, isEmergency: boolean): Promise<boolean | void> => {
+    return await reportFault(computer.id, description, isEmergency);
   };
 
   const handleFix = () => {

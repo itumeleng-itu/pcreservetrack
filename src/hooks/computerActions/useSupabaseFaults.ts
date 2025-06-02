@@ -88,7 +88,7 @@ export const useSupabaseFaults = (
           .insert({
             computer_id: parseInt(computerId),
             description: description.trim(),
-            reported_by: currentUser.id,
+            reported_by: parseInt(currentUser.id), // Convert to integer to match schema
             status: 'reported'
           })
           .select()
@@ -180,20 +180,6 @@ export const useSupabaseFaults = (
         } else {
           console.error("All fault reporting attempts failed");
           
-          // Log the failure for debugging
-          try {
-            await supabase
-              .from('notifications')
-              .insert({
-                user_id: currentUser.id,
-                title: 'Fault Report Failed',
-                message: `Failed to report fault for computer ${computerId} after ${maxRetries} attempts. Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
-                type: 'error'
-              });
-          } catch (logError) {
-            console.error("Failed to log fault reporting failure:", logError);
-          }
-          
           toast({
             title: "Report Failed",
             description: `Unable to report fault after ${maxRetries} attempts. Please try again or contact support directly.`,
@@ -225,8 +211,7 @@ export const useSupabaseFaults = (
       const { error: faultUpdateError } = await supabase
         .from('faults')
         .update({ 
-          status: 'resolved',
-          notes: `Resolved by technician ${currentUser.id} at ${new Date().toISOString()}`
+          status: 'resolved'
         })
         .eq('computer_id', parseInt(computerId))
         .eq('status', 'reported');
