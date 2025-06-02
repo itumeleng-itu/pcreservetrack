@@ -1,9 +1,9 @@
+
 import React from "react";
-import { Navigate, Routes, Route } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import { AuthForm } from "@/components/auth/AuthForm";
 import { useAuth } from "@/context/AuthContext";
 import { Laptop, Loader2, Fingerprint } from "lucide-react";
-import ResetPasswordPage from "./ResetPasswordPage";
 
 const AuthPage = () => {
   const { isAuthenticated, isLoading } = useAuth();
@@ -37,10 +37,8 @@ const AuthPage = () => {
             Now with fingerprint authentication for supported devices
           </p>
         </div>
-        <Routes>
-          <Route path="/reset-password" element={<ResetPasswordPage />} />
-          <Route path="/*" element={<AuthForm />} />
-        </Routes>
+        
+        <AuthForm />
       </div>
     </div>
   );
