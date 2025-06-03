@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -13,6 +12,7 @@ import { FingerprintAuth } from "./FingerprintAuth";
 import { Separator } from "@/components/ui/separator";
 import { useSearchParams } from "react-router-dom";
 import { ForgotPassword } from "./ForgotPassword";
+import { ResetPassword } from "./ResetPassword";
 
 export function AuthForm() {
   const { login, register, isLoading } = useAuth();
@@ -52,6 +52,11 @@ export function AuthForm() {
       default: return "Identification Number";
     }
   };
+
+  // Show password reset form if we're in reset mode
+  if (isReset) {
+    return <ResetPassword onComplete={() => window.location.href = '/auth'} />;
+  }
 
   if (showForgotPassword) {
     return <ForgotPassword onBack={() => setShowForgotPassword(false)} />;
