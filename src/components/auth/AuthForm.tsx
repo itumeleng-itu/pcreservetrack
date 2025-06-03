@@ -16,7 +16,6 @@ import { ResetPassword } from "./ResetPassword";
 
 export function AuthForm() {
   const { login, register, isLoading } = useAuth();
-  const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [registerName, setRegisterName] = useState("");
   const [registerEmail, setRegisterEmail] = useState("");
@@ -25,7 +24,9 @@ export function AuthForm() {
   const [identificationNumber, setIdentificationNumber] = useState("");
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [searchParams] = useSearchParams();
-  
+  const [loginStaffNum, setLoginStaffNum] = useState("");
+  const [staffNum, setStaffNum] = useState("");
+
   // Check for both reset parameter and access_token to determine if this is a password reset
   const isReset = searchParams.get('reset') === 'true' || searchParams.has('access_token');
 
@@ -37,12 +38,12 @@ export function AuthForm() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    await login(loginEmail, loginPassword);
+    await login(loginStaffNum, loginPassword);
   };
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    await register(registerName, registerEmail, registerPassword, registerRole, identificationNumber);
+    await register(registerName, registerEmail, registerPassword, registerRole, staffNum);
   };
 
   // Helper to get the proper label for the identification field based on role
@@ -82,13 +83,15 @@ export function AuthForm() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="login-staff-num">Student/Staff Number</Label>
                 <Input
-                  id="email"
-                  type="email"
-                  placeholder="m.simpson@example.com"
-                  value={loginEmail}
-                  onChange={(e) => setLoginEmail(e.target.value)}
+                  id="login-staff-num"
+                  type="text"
+                  pattern="\d{9}"
+                  maxLength={9}
+                  placeholder="Enter your 9-digit number"
+                  value={loginStaffNum}
+                  onChange={(e) => setLoginStaffNum(e.target.value)}
                   required
                   disabled={isLoading}
                 />
@@ -135,7 +138,7 @@ export function AuthForm() {
                 </div>
               </div>
               
-              <FingerprintAuth onAuthSuccess={() => login(loginEmail, loginPassword)} />
+              <FingerprintAuth onAuthSuccess={() => login(loginStaffNum, loginPassword)} />
             </CardContent>
           </form>
         </TabsContent>
@@ -202,12 +205,12 @@ export function AuthForm() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="identification-number">{getIdNumberLabel()}</Label>
+                <Label htmlFor="staff-num">{getIdNumberLabel()}</Label>
                 <Input
-                  id="identification-number"
+                  id="staff-num"
                   placeholder={`Enter your ${getIdNumberLabel().toLowerCase()}`}
-                  value={identificationNumber}
-                  onChange={(e) => setIdentificationNumber(e.target.value)}
+                  value={staffNum}
+                  onChange={(e) => setStaffNum(e.target.value)}
                   required
                   disabled={isLoading}
                 />

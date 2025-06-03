@@ -16,15 +16,46 @@ export const useAuthActions = () => {
     return deviceId;
   };
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (staffNum: string, password: string): Promise<boolean> => {
     try {
       setIsLoading(true);
-      
+
+      // Find user by staff_num
+      const { data, error } = await supabase
+        .from('registered')
+        .select('*')
+        .eq('staff_num', staffNum)
+        .single();
+
+      if (error || !data) {
+        toast({
+          title: "Login failed",
+          description: "Invalid staff number or password",
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      // Now authenticate with Supabase Auth using the user's email
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email: data.email,
+        password,
+      });
+
+      if (authError || !authData.user) {
+        toast({
+          title: "Login failed",
+          description: "Invalid staff number or password",
+          variant: "destructive",
+        });
+        return false;
+      }
+
       // Check if user is already logged in on another device
       const { data: existingSession, error: sessionError } = await supabase
         .from('user_sessions')
         .select('*')
-        .eq('email', email)
+        .eq('email', data.email)
         .single();
 
       if (sessionError && sessionError.code !== 'PGRST116') {
@@ -49,45 +80,27 @@ export const useAuthActions = () => {
             // Session on other device is considered inactive, we'll force logout
             await supabase.from('user_sessions')
               .delete()
-              .match({ email: email });
+              .match({ email: data.email });
           }
         }
       }
 
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
+      // Successfully logged in, update or create session record
+      await supabase.from('user_sessions')
+        .upsert({
+          user_id: authData.user.id,
+          email: authData.user.email,
+          device_id: deviceId,
+          last_active: new Date().toISOString()
+        }, {
+          onConflict: 'email'
+        });
+
+      toast({
+        title: "Login successful",
+        description: "Welcome back!",
       });
-
-      if (error) {
-        toast({
-          title: "Login failed",
-          description: error.message,
-          variant: "destructive",
-        });
-        return false;
-      }
-
-      if (data.user) {
-        // Successfully logged in, update or create session record
-        await supabase.from('user_sessions')
-          .upsert({
-            user_id: data.user.id,
-            email: data.user.email,
-            device_id: deviceId,
-            last_active: new Date().toISOString()
-          }, {
-            onConflict: 'email'
-          });
-
-        toast({
-          title: "Login successful",
-          description: "Welcome back!",
-        });
-        return true;
-      }
-
-      return false;
+      return true;
     } catch (error) {
       console.error("Login error:", error);
       toast({
