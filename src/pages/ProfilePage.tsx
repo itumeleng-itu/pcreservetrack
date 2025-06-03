@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
@@ -28,6 +29,7 @@ const ProfilePage = () => {
     return localStorage.getItem('theme') === 'dark' || 
       (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
   });
+  const [isDeleting, setIsDeleting] = useState(false);
   const navigate = useNavigate();
 
   // Initialize dark mode based on local storage or system preference
@@ -139,17 +141,58 @@ const ProfilePage = () => {
   const handleDeleteAccount = async () => {
     if (!currentUser) return;
     
+    setIsDeleting(true);
+    
     try {
-      // Delete the user from Supabase auth
-      const { error } = await supabase.auth.admin.deleteUser(currentUser.id);
+      // First, mark the user as deleted in the registered table
+      const { error: updateError } = await supabase
+        .from('registered')
+        .update({ is_deleted: true })
+        .eq('id', currentUser.id);
       
-      if (error) {
-        throw error;
+      if (updateError) {
+        console.error("Error marking user as deleted:", updateError);
+        throw new Error("Failed to delete user profile");
       }
-      
+
+      // Cancel any active reservations
+      const { error: reservationError } = await supabase
+        .from('reservations')
+        .update({ status: 'cancelled' })
+        .eq('user_id', currentUser.id)
+        .eq('status', 'active');
+
+      if (reservationError) {
+        console.error("Error cancelling reservations:", reservationError);
+        // Don't throw here, continue with deletion
+      }
+
+      // Delete user sessions
+      const { error: sessionError } = await supabase
+        .from('user_sessions')
+        .delete()
+        .eq('user_id', currentUser.id);
+
+      if (sessionError) {
+        console.error("Error deleting sessions:", sessionError);
+        // Don't throw here, continue with deletion
+      }
+
+      // Delete the user's avatar if they have one
+      if (currentUser.avatar_url) {
+        const { error: storageError } = await supabase.storage
+          .from('avatars')
+          .remove([`${currentUser.id}/${currentUser.id}.*`]);
+        
+        if (storageError) {
+          console.error("Error deleting avatar:", storageError);
+          // Don't throw here, continue with deletion
+        }
+      }
+
       toast({
         title: "Account Deleted",
-        description: "Your account has been successfully deleted.",
+        description: "Your account has been successfully deleted. You will be logged out.",
       });
       
       // Log out the user and redirect to the home page
@@ -159,10 +202,11 @@ const ProfilePage = () => {
       console.error("Error deleting account:", error);
       toast({
         title: "Delete Failed",
-        description: "There was an error deleting your account. Please try again later.",
+        description: error instanceof Error ? error.message : "There was an error deleting your account. Please try again later.",
         variant: "destructive",
       });
     } finally {
+      setIsDeleting(false);
       setDeleteDialogOpen(false);
     }
   };
@@ -233,6 +277,7 @@ const ProfilePage = () => {
             variant="destructive" 
             onClick={() => setDeleteDialogOpen(true)}
             className="w-full"
+            disabled={isDeleting}
           >
             <Trash2 className="mr-2 h-4 w-4" /> Delete Account
           </Button>
@@ -244,15 +289,23 @@ const ProfilePage = () => {
           <DialogHeader>
             <DialogTitle>Delete Account</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete your account? This action cannot be undone and will permanently delete all your data.
+              Are you sure you want to delete your account? This action will mark your account as deleted and cancel all active reservations. This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex space-x-2 justify-end">
-            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+            <Button 
+              variant="outline" 
+              onClick={() => setDeleteDialogOpen(false)}
+              disabled={isDeleting}
+            >
               Cancel
             </Button>
-            <Button variant="destructive" onClick={handleDeleteAccount}>
-              Delete Account
+            <Button 
+              variant="destructive" 
+              onClick={handleDeleteAccount}
+              disabled={isDeleting}
+            >
+              {isDeleting ? "Deleting..." : "Delete Account"}
             </Button>
           </DialogFooter>
         </DialogContent>
