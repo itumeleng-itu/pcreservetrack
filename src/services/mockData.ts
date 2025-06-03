@@ -1,4 +1,5 @@
 import { User, Computer, Reservation, UserRole, ComputerStatus } from "../types";
+import { AdminLog } from "@/types";
 
 // Mock Users
 export const mockUsers: User[] = [
@@ -205,3 +206,6 @@ export function reserveComputerAtomic(computerId: string, userId: string): boole
   computer._lock = false;
   return true;
 }
+
+// Add this line to create and export the logs array
+export const mockAdminLogs: AdminLog[] = [];

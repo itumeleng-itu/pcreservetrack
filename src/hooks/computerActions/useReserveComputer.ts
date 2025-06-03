@@ -1,5 +1,5 @@
 import { Computer, ComputerStatus } from "@/types";
-import { mockReservations } from "@/services/mockData";
+import { mockReservations, mockAdminLogs } from "@/services/mockData";
 import { isWithinBookingHours, getBookingHoursMessage } from "@/utils/computerUtils";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
@@ -119,6 +119,23 @@ export const useReserveComputer = ( // This hook is used to reserve a computer
       } catch (error) {
         console.error("Error updating user session:", error);
         // Don't fail the reservation if this fails
+      }
+
+      // Log the admin event for the reservation
+      if (computerToReserve && currentUser) {
+        mockAdminLogs.push({
+          id: `${Date.now()}-${Math.random()}`,
+          eventType: "reserved",
+          computerId: computerToReserve.id,
+          computerName: computerToReserve.name,
+          location: computerToReserve.location,
+          reporteeName: currentUser.name,
+          reserveTime: startTime,
+          expirationTime: endTime,
+          createdAt: new Date(),
+          details: `Reserved from ${startTime.toLocaleString()} to ${endTime.toLocaleString()}`,
+          status: "reserved",
+        });
       }
 
       toast({

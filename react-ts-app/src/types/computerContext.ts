@@ -1,7 +1,8 @@
-interface Computer {
+export interface Computer {
   id: string;
-  name: string;
-  status: 'available' | 'reserved' | 'faulty';
+  isReserved: boolean;
+  isFaulty: boolean;
+  // ...other properties
 }
 
 interface ComputerContextType {

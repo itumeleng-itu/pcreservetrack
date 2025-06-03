@@ -1,4 +1,3 @@
-
 export type UserRole = "student" | "admin" | "technician";
 
 export interface User {
@@ -48,4 +47,28 @@ export interface ComputerTracking {
   lastHeartbeat: Date;
   cpuUsage?: number;
   memoryUsage?: number;
+}
+
+export type LogEventType = 
+  | "fault_reported"
+  | "reserved"
+  | "reservation_cancelled"
+  | "fixed";
+
+export interface AdminLog {
+  id: string;
+  eventType: LogEventType;
+  computerId: string;
+  computerName: string;
+  location: string;
+  reporteeName?: string;
+  technicianName?: string;
+  timeReported?: Date;
+  timeFixed?: Date;
+  reserveTime?: Date;
+  expirationTime?: Date;
+  cancellationTime?: Date;
+  createdAt: Date;
+  details?: string;
+  status: string;
 }

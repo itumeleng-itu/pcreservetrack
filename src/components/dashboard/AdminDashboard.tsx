@@ -16,6 +16,7 @@ import { getLabQueue } from "@/services/mockData";
 import { mockUsers } from "@/services/mockData";
 import { useToast } from "@/hooks/use-toast";
 import { autoReserveForQueue } from "@/services/mockData";
+import { mockAdminLogs } from "@/services/mockData";
 
 export function AdminDashboard() { // AdminDashboard component
   const { computers } = useComputers(); // Get computers from context
@@ -272,6 +273,60 @@ export function AdminDashboard() { // AdminDashboard component
           <UserManagement />
         </TabsContent>
       </Tabs>
+      
+      <Card className="mt-8">
+        <CardHeader>
+          <CardTitle>System Activity Logs</CardTitle>
+          <CardDescription>Recent actions on computers</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+              <thead className="bg-gray-100 dark:bg-gray-800">
+                <tr>
+                  <th className="px-4 py-2 font-semibold text-left text-gray-700 dark:text-gray-200">Event</th>
+                  <th className="px-4 py-2 font-semibold text-left text-gray-700 dark:text-gray-200">Computer</th>
+                  <th className="px-4 py-2 font-semibold text-left text-gray-700 dark:text-gray-200">Location</th>
+                  <th className="px-4 py-2 font-semibold text-left text-gray-700 dark:text-gray-200">User/Technician</th>
+                  <th className="px-4 py-2 font-semibold text-left text-gray-700 dark:text-gray-200">Details</th>
+                  <th className="px-4 py-2 font-semibold text-left text-gray-700 dark:text-gray-200">Time</th>
+                  <th className="px-4 py-2 font-semibold text-left text-gray-700 dark:text-gray-200">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {mockAdminLogs.slice().reverse().map((log, idx) => (
+                  <tr
+                    key={log.id}
+                    className={idx % 2 === 0 ? "bg-white dark:bg-slate-900" : "bg-gray-50 dark:bg-slate-800"}
+                  >
+                    <td className="px-4 py-2">{log.eventType}</td>
+                    <td className="px-4 py-2">{log.computerName}</td>
+                    <td className="px-4 py-2">{log.location}</td>
+                    <td className="px-4 py-2">{log.reporteeName || log.technicianName || "-"}</td>
+                    <td className="px-4 py-2">{log.details || "-"}</td>
+                    <td className="px-4 py-2">{log.createdAt ? new Date(log.createdAt).toLocaleString() : "-"}</td>
+                    <td className="px-4 py-2">
+                      <span
+                        className={
+                          log.status === "fixed"
+                            ? "text-green-600 dark:text-green-400 font-semibold"
+                            : log.status === "computer released"
+                            ? "text-blue-600 dark:text-blue-400 font-semibold"
+                            : log.status === "not fixed"
+                            ? "text-red-600 dark:text-red-400 font-semibold"
+                            : "text-gray-700 dark:text-gray-200"
+                        }
+                      >
+                        {log.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

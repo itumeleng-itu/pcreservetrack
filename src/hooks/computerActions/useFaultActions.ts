@@ -1,6 +1,5 @@
-
 import { Computer, ComputerStatus } from "@/types";
-import { mockReservations } from "@/services/mockData";
+import { mockReservations, mockAdminLogs } from "@/services/mockData";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 
@@ -37,6 +36,22 @@ export const useFaultActions = (computers: Computer[], setComputers: (cb: (prev:
       })
     );
 
+    const computer = computers.find(c => c.id === computerId);
+    if (computer && currentUser) {
+      mockAdminLogs.push({
+        id: `${Date.now()}-${Math.random()}`,
+        eventType: "fault_reported",
+        computerId: computer.id,
+        computerName: computer.name,
+        location: computer.location,
+        reporteeName: currentUser.name,
+        timeReported: new Date(),
+        createdAt: new Date(),
+        details: description,
+        status: "not fixed",
+      });
+    }
+
     const emergencyText = isEmergency ? "emergency " : "";
     toast({
       title: `${isEmergency ? "Emergency " : ""}Fault reported`,
@@ -67,6 +82,21 @@ export const useFaultActions = (computers: Computer[], setComputers: (cb: (prev:
         return computer;
       })
     );
+    const computer = computers.find(c => c.id === computerId);
+    if (computer && currentUser) {
+      mockAdminLogs.push({
+        id: `${Date.now()}-${Math.random()}`,
+        eventType: "fixed",
+        computerId: computer.id,
+        computerName: computer.name,
+        location: computer.location,
+        technicianName: currentUser.name,
+        timeFixed: new Date(),
+        createdAt: new Date(),
+        details: "Marked as fixed by technician",
+        status: "fixed",
+      });
+    }
     toast({
       title: "Computer fixed",
       description: "The computer is now available for use",

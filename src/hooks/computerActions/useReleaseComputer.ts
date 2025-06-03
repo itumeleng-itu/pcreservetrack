@@ -1,5 +1,5 @@
 import { Computer, ComputerStatus } from "@/types";
-import { mockReservations } from "@/services/mockData";
+import { mockReservations, mockAdminLogs } from "@/services/mockData";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -75,6 +75,22 @@ export const useReleaseComputer = (
         await supabase.from('user_sessions')
           .update({ last_active: new Date().toISOString() })
           .match({ user_id: currentUser.id });
+      }
+
+      const computer = computers.find(c => c.id === computerId);
+      if (computer && currentUser) {
+        mockAdminLogs.push({
+          id: `${Date.now()}-${Math.random()}`,
+          eventType: "reservation_cancelled",
+          computerId: computer.id,
+          computerName: computer.name,
+          location: computer.location,
+          reporteeName: currentUser.name,
+          cancellationTime: new Date(),
+          createdAt: new Date(),
+          details: "Reservation cancelled by student",
+          status: "computer released",
+        });
       }
 
       toast({
