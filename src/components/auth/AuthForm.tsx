@@ -25,7 +25,9 @@ export function AuthForm() {
   const [identificationNumber, setIdentificationNumber] = useState("");
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [searchParams] = useSearchParams();
-  const isReset = searchParams.get('reset') === 'true';
+  
+  // Check for both reset parameter and access_token to determine if this is a password reset
+  const isReset = searchParams.get('reset') === 'true' || searchParams.has('access_token');
 
   useEffect(() => {
     if (isReset) {
