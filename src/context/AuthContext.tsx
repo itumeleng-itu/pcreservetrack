@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { User, UserRole } from "../types";
 import { supabase } from "@/integrations/supabase/client";
@@ -65,7 +64,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           name: data.name,
           email: data.email,
           role: data.role as UserRole,
-          identificationNumber: data.staff_num || "",
+          staffNum: data.staff_num || "", // <-- correct mapping
           avatar_url: data.avatar_url
         };
         setCurrentUser(userData);
@@ -75,6 +74,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const updateUser = async (updates: { name?: string }) => {
+    // Call your backend PATCH /api/users/me
+    const res = await fetch("/api/users/me", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(updates),
+      credentials: "include",
+    });
+    if (!res.ok) throw new Error("Failed to update profile");
+    const updatedUser = await res.json();
+    setUser(updatedUser); // update context state
   };
 
   return (
@@ -101,3 +113,14 @@ export const useAuth = () => {
   }
   return context;
 };
+function setUser(updatedUser: User) {
+  setCurrentUser(updatedUser);
+}
+
+function setCurrentUser(updatedUser: User) {
+  throw new Error("Function not implemented.");
+}
+// setCurrentUser is already defined as a useState setter above, so this function is unnecessary.
+// If you need to expose setCurrentUser, you can export it or pass it through context.
+// Otherwise, you can safely remove this function.
+

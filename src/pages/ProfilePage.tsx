@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
@@ -18,6 +17,7 @@ import {
   DialogFooter
 } from "@/components/ui/dialog";
 import { useNavigate } from "react-router-dom";
+import { Label } from '@/components/ui/label';
 
 const ProfilePage = () => {
   const { currentUser, logout } = useAuth();
@@ -30,6 +30,9 @@ const ProfilePage = () => {
       (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
   });
   const [isDeleting, setIsDeleting] = useState(false);
+  const [name, setName] = useState(currentUser?.name || "");
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const navigate = useNavigate();
 
   // Initialize dark mode based on local storage or system preference
@@ -211,6 +214,44 @@ const ProfilePage = () => {
     }
   };
 
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      // Update the user's name directly using Supabase
+      if (currentUser) {
+        const { error } = await supabase
+          .from('registered')
+          .update({ name })
+          .eq('id', currentUser.id);
+
+        if (error) {
+          throw error;
+        }
+        toast({
+          title: "Profile Updated",
+          description: "Your name has been updated.",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Update Failed",
+        description: "There was an error updating your profile.",
+        variant: "destructive",
+      });
+      console.error("Profile update error:", error);
+    }
+    setIsEditing(false);
+    setIsSaving(false);
+  };
+
+  if (!currentUser) return <div>Loading...</div>;
+
+  // Determine label and static email
+  const isStudent = currentUser.role === "student";
+  const isTechnician = currentUser.role === "technician";
+  const numberLabel = isTechnician ? "Staff Number" : "Student Number";
+  const staticEmail = isStudent ? `${currentUser.staffNum}@tut4life.ac.za` : null;
+
   return (
     <Layout>
       <div className="max-w-md mx-auto space-y-6">
@@ -266,6 +307,37 @@ const ProfilePage = () => {
               </Button>
             )}
           </div>
+        </div>
+
+        <div className="mb-4">
+          <Label htmlFor="name">Full Name</Label>
+          <Input
+            id="name"
+            value={name}
+            onChange={e => setName(e.target.value)}
+            disabled={!isEditing}
+          />
+          {!isEditing ? (
+            <Button className="mt-2" onClick={() => setIsEditing(true)}>Edit</Button>
+          ) : (
+            <Button className="mt-2" onClick={handleSave} disabled={isSaving}>
+              {isSaving ? "Saving..." : "Save"}
+            </Button>
+          )}
+        </div>
+        <div className="mb-4">
+          <Label>{numberLabel}</Label>
+          <div className="border rounded px-3 py-2 bg-gray-50">{currentUser.staffNum}</div>
+        </div>
+        {staticEmail && (
+          <div className="mb-4">
+            <Label>Student Email</Label>
+            <div className="border rounded px-3 py-2 bg-gray-50">{staticEmail}</div>
+          </div>
+        )}
+        <div className="mb-4">
+          <Label>Role</Label>
+          <div className="border rounded px-3 py-2 bg-gray-50 capitalize">{currentUser.role}</div>
         </div>
         
         <div className="pt-6 border-t">

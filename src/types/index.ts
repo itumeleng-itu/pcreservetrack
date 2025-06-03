@@ -1,11 +1,14 @@
+import { ReactNode } from "node_modules/react-resizable-panels/dist/declarations/src/vendor/react";
+
 export type UserRole = "student" | "admin" | "technician";
 
 export interface User {
+  [x: string]: ReactNode;
   id: string;
   name: string;
   email: string;
   role: UserRole;
-  identificationNumber?: string; // Student number or staff number
+  staffNum?: string; // Student number or staff number
   avatar_url?: string; // Added avatar URL
 }
 
