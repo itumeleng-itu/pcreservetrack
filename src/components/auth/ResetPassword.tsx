@@ -10,7 +10,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Loader2, CheckCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const resetPasswordSchema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters"),
@@ -30,7 +30,7 @@ export const ResetPassword = ({ onComplete }: ResetPasswordProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
   const [validSession, setValidSession] = useState(false);
-  const [searchParams] = useSearchParams();
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -44,12 +44,16 @@ export const ResetPassword = ({ onComplete }: ResetPasswordProps) => {
 
   useEffect(() => {
     const handlePasswordReset = async () => {
-      // Check if we have the necessary URL parameters
-      const accessToken = searchParams.get('access_token');
-      const refreshToken = searchParams.get('refresh_token');
-      
-      if (accessToken && refreshToken) {
-        try {
+      try {
+        // Get the URL hash which contains the tokens
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const accessToken = hashParams.get('access_token');
+        const refreshToken = hashParams.get('refresh_token');
+        const type = hashParams.get('type');
+        
+        console.log('Reset password tokens:', { accessToken: !!accessToken, refreshToken: !!refreshToken, type });
+
+        if (accessToken && refreshToken && type === 'recovery') {
           // Set the session using the tokens from the URL
           const { data, error } = await supabase.auth.setSession({
             access_token: accessToken,
@@ -71,28 +75,31 @@ export const ResetPassword = ({ onComplete }: ResetPasswordProps) => {
             setValidSession(true);
             console.log("Password reset session established successfully");
           }
-        } catch (error) {
-          console.error("Unexpected error:", error);
+        } else {
+          // No valid tokens in URL, redirect to auth page
+          console.log('No valid reset tokens found in URL');
           toast({
             title: "Error",
-            description: "An unexpected error occurred. Please try again.",
+            description: "Invalid reset link. Please request a new password reset.",
             variant: "destructive",
           });
           navigate('/auth');
         }
-      } else {
-        // No tokens in URL, redirect to auth page
+      } catch (error) {
+        console.error("Unexpected error:", error);
         toast({
           title: "Error",
-          description: "Invalid reset link. Please request a new password reset.",
+          description: "An unexpected error occurred. Please try again.",
           variant: "destructive",
         });
         navigate('/auth');
+      } finally {
+        setIsLoading(false);
       }
     };
 
     handlePasswordReset();
-  }, [searchParams, toast, navigate]);
+  }, [toast, navigate]);
 
   const onSubmit = async (data: ResetPasswordFormValues) => {
     if (!validSession) {
@@ -143,7 +150,7 @@ export const ResetPassword = ({ onComplete }: ResetPasswordProps) => {
     }
   };
 
-  if (!validSession) {
+  if (isLoading) {
     return (
       <Card className="w-full max-w-md">
         <CardHeader>
@@ -156,6 +163,27 @@ export const ResetPassword = ({ onComplete }: ResetPasswordProps) => {
           <div className="flex justify-center">
             <Loader2 className="h-8 w-8 animate-spin" />
           </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!validSession) {
+    return (
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle>Invalid Reset Link</CardTitle>
+          <CardDescription>
+            This password reset link is invalid or has expired.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button 
+            onClick={() => navigate('/auth')}
+            className="w-full"
+          >
+            Return to Login
+          </Button>
         </CardContent>
       </Card>
     );

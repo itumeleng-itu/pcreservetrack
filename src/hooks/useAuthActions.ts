@@ -208,8 +208,8 @@ export const useAuthActions = () => {
     try {
       setIsLoading(true);
       
-      // Use the correct production URL for your deployed app
-      const redirectUrl = 'https://itumeleng-itu.github.io/pcreservetrack/auth?reset=true';
+      // Use the correct production URL for the dedicated reset password page
+      const redirectUrl = 'https://itumeleng-itu.github.io/pcreservetrack/reset-password';
       
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: redirectUrl,
