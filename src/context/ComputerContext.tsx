@@ -20,6 +20,7 @@ export const ComputerProvider = ({ children }: { children: ReactNode }) => {
     releaseComputer,
     reportFault,
     fixComputer,
+    confirmFix,
     updateComputersFromTracking
   } = useComputerActions(initialComputers);
 
@@ -31,6 +32,7 @@ export const ComputerProvider = ({ children }: { children: ReactNode }) => {
         releaseComputer,
         reportFault,
         fixComputer,
+        confirmFix,
         getAvailableComputers,
         getReservedComputers,
         getFaultyComputers,
