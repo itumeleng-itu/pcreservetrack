@@ -287,7 +287,7 @@ export type Database = {
           name: string
           no_show_count: number | null
           role: string
-          staff_num: string
+          staff_num: string | null
           successful_reservations: number | null
           updated_at: string | null
         }
@@ -301,7 +301,7 @@ export type Database = {
           name: string
           no_show_count?: number | null
           role: string
-          staff_num: string
+          staff_num?: string | null
           successful_reservations?: number | null
           updated_at?: string | null
         }
@@ -315,7 +315,7 @@ export type Database = {
           name?: string
           no_show_count?: number | null
           role?: string
-          staff_num?: string
+          staff_num?: string | null
           successful_reservations?: number | null
           updated_at?: string | null
         }
@@ -374,50 +374,6 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "registered"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      system_logs: {
-        Row: {
-          computer_id: number
-          computer_name: string
-          created_at: string
-          details: Json
-          id: string
-          reportee_name: string
-          technician_name: string | null
-          timestamp: string
-          type: string
-        }
-        Insert: {
-          computer_id: number
-          computer_name: string
-          created_at?: string
-          details?: Json
-          id?: string
-          reportee_name: string
-          technician_name?: string | null
-          timestamp?: string
-          type: string
-        }
-        Update: {
-          computer_id?: number
-          computer_name?: string
-          created_at?: string
-          details?: Json
-          id?: string
-          reportee_name?: string
-          technician_name?: string | null
-          timestamp?: string
-          type?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "system_logs_computer_id_fkey"
-            columns: ["computer_id"]
-            isOneToOne: false
-            referencedRelation: "computers"
             referencedColumns: ["id"]
           },
         ]

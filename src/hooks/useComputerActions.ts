@@ -1,3 +1,4 @@
+
 import { useEffect } from "react";
 import { Computer, ComputerTracking } from "@/types";
 import { useComputerState } from "./computerActions/useComputerState";
@@ -8,6 +9,7 @@ import { useTrackingUpdate } from "./computerActions/useTrackingUpdate";
 export const useComputerActions = (initialComputers: Computer[]) => {
   const { computers, setComputers } = useComputerState(initialComputers);
 
+  // Reservation logic
   const {
     getAvailableComputers,
     getReservedComputers,
@@ -18,15 +20,17 @@ export const useComputerActions = (initialComputers: Computer[]) => {
     checkExpiredReservations,
   } = useReservationActions(computers, setComputers);
 
+  // Fault logic
   const {
     getFaultyComputers,
     reportFault,
-    fixComputer,
-    confirmFaultReport
+    fixComputer
   } = useFaultActions(computers, setComputers);
 
+  // Tracking updates
   const { updateComputersFromTracking } = useTrackingUpdate(setComputers);
 
+  // Check for expired reservations every minute
   useEffect(() => {
     const interval = setInterval(checkExpiredReservations, 60000);
     checkExpiredReservations();
@@ -44,7 +48,6 @@ export const useComputerActions = (initialComputers: Computer[]) => {
     releaseComputer,
     reportFault,
     fixComputer,
-    confirmFaultReport,
     updateComputersFromTracking
   };
 };

@@ -6,7 +6,6 @@ import { Layout } from "@/components/layout/Layout";
 import { StudentDashboard } from "@/components/dashboard/StudentDashboard";
 import { AdminDashboard } from "@/components/dashboard/AdminDashboard";
 import { TechnicianDashboard } from "@/components/dashboard/TechnicianDashboard";
-import { NotificationHandler } from "@/components/notifications/NotificationHandler";
 import { useComputers } from "@/context/ComputerContext";
 
 const Dashboard = () => {
@@ -39,7 +38,6 @@ const Dashboard = () => {
 
   return (
     <Layout>
-      <NotificationHandler />
       {currentUser?.role === "admin" ? (
         <AdminDashboard />
       ) : currentUser?.role === "technician" ? (

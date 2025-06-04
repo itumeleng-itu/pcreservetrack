@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, ReactNode } from "react";
 import { ComputerContextType } from "../types/computerContext";
 import { generateExtendedComputers } from "../utils/computerUtils";
@@ -19,7 +20,6 @@ export const ComputerProvider = ({ children }: { children: ReactNode }) => {
     releaseComputer,
     reportFault,
     fixComputer,
-    confirmFaultReport,
     updateComputersFromTracking
   } = useComputerActions(initialComputers);
 
@@ -31,7 +31,6 @@ export const ComputerProvider = ({ children }: { children: ReactNode }) => {
         releaseComputer,
         reportFault,
         fixComputer,
-        confirmFaultReport,
         getAvailableComputers,
         getReservedComputers,
         getFaultyComputers,
