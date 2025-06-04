@@ -24,7 +24,8 @@ export const useComputerActions = (initialComputers: Computer[]) => {
   const {
     getFaultyComputers,
     reportFault,
-    fixComputer
+    fixComputer,
+    confirmFix
   } = useFaultActions(computers, setComputers);
 
   // Tracking updates
@@ -48,6 +49,7 @@ export const useComputerActions = (initialComputers: Computer[]) => {
     releaseComputer,
     reportFault,
     fixComputer,
+    confirmFix,
     updateComputersFromTracking
   };
 };
