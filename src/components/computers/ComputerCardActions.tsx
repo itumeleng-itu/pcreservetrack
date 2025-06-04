@@ -1,10 +1,11 @@
+
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { ReservationDialog } from "./ReservationDialog";
 import { ReportIssueDialog } from "./ReportIssueDialog";
 import { Computer } from "@/types";
 import { User } from "@/types";
-import { Clock, X } from "lucide-react";
+import { Clock, X, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface ComputerCardActionsProps {
@@ -14,6 +15,7 @@ interface ComputerCardActionsProps {
   onRelease: () => void;
   onReportFault: (description: string, isEmergency: boolean) => void;
   onFix: () => void;
+  onApproveFix?: () => void;
   onReservationSuccess?: (updatedComputer: Computer) => void;
 }
 
@@ -24,6 +26,7 @@ export function ComputerCardActions({
   onRelease,
   onReportFault,
   onFix,
+  onApproveFix,
   onReservationSuccess
 }: ComputerCardActionsProps) {
   const { toast } = useToast();
@@ -50,7 +53,6 @@ export function ComputerCardActions({
       description: "The computer is now available for others",
     });
     
-    // Also trigger the callback on release
     if (onReservationSuccess) {
       console.log("Triggering onReservationSuccess callback from ComputerCardActions after release");
       onReservationSuccess({...computer, status: "available", reservedBy: undefined, reservedUntil: undefined});
@@ -90,7 +92,7 @@ export function ComputerCardActions({
         </Button>
       )}
       
-      {isStudent && computer.status !== "faulty" && (
+      {isStudent && computer.status !== "faulty" && computer.status !== "pending_approval" && (
         <ReportIssueDialog onReportIssue={onReportFault} />
       )}
       
@@ -107,6 +109,22 @@ export function ComputerCardActions({
       
       {isTechnician && computer.status === "faulty" && (
         <Button size="sm" onClick={onFix}>Mark as Fixed</Button>
+      )}
+      
+      {isAdmin && computer.status === "pending_approval" && onApproveFix && (
+        <Button 
+          size="sm" 
+          onClick={onApproveFix}
+          className="flex items-center gap-1"
+        >
+          <CheckCircle className="h-4 w-4" /> Approve Fix
+        </Button>
+      )}
+      
+      {computer.status === "pending_approval" && (
+        <Button size="sm" variant="outline" disabled className="flex items-center gap-1">
+          <Clock className="h-4 w-4" /> Pending Approval
+        </Button>
       )}
     </div>
   );

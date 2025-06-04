@@ -23,6 +23,36 @@ export const mockUsers: User[] = [
   }
 ];
 
+// Notification system
+export interface Notification {
+  id: string;
+  type: "fix_approval_needed" | "computer_fixed" | "fault_reported";
+  title: string;
+  message: string;
+  recipientId: string;
+  computerId?: string;
+  data?: any;
+  createdAt: string;
+  read: boolean;
+}
+
+export const mockNotifications: Notification[] = [];
+
+export const addNotification = (notification: Notification) => {
+  mockNotifications.push(notification);
+};
+
+export const getNotificationsForUser = (userId: string): Notification[] => {
+  return mockNotifications.filter(n => n.recipientId === userId || n.recipientId === "admin");
+};
+
+export const markNotificationAsRead = (notificationId: string) => {
+  const notification = mockNotifications.find(n => n.id === notificationId);
+  if (notification) {
+    notification.read = true;
+  }
+};
+
 // Mock Computers
 export const mockComputers: Computer[] = [
   {
@@ -97,13 +127,10 @@ export function updateUserStats(userId: string, outcome: 'noShow' | 'lateReturn'
 // Helper: Assign badges based on reservation history
 export function assignBadges(user: MutableUser) {
   user.badges = Array.isArray(user.badges) ? user.badges as string[] : [];
-  // Early Bird: 3+ successful reservations before 9am
   const earlyBirdCount = mockReservations.filter(r => r.userId === user.id && r.status === 'completed' && r.startTime.getHours() < 9).length;
   if (earlyBirdCount >= 3 && !(user.badges as string[]).includes('Early Bird')) (user.badges as string[]).push('Early Bird');
-  // Night Owl: 3+ successful reservations after 9pm
   const nightOwlCount = mockReservations.filter(r => r.userId === user.id && r.status === 'completed' && r.startTime.getHours() >= 21).length;
   if (nightOwlCount >= 3 && !(user.badges as string[]).includes('Night Owl')) (user.badges as string[]).push('Night Owl');
-  // Frequent User: 10+ successful reservations
   if (typeof user.successfulReservations === 'number' && user.successfulReservations >= 10 && !(user.badges as string[]).includes('Frequent User')) (user.badges as string[]).push('Frequent User');
 }
 
@@ -142,13 +169,11 @@ export function autoReserveForQueue(lab: string, computerId: string, notify?: (u
   const queue = labQueues[lab];
   if (queue && queue.length > 0) {
     const nextUserId = queue.shift();
-    // Find the computer and reserve it for the next user
     const computer = mockComputers.find(c => c.id === computerId);
     if (computer && nextUserId) {
       computer.status = "reserved";
       computer.reservedBy = nextUserId;
-      computer.reservedUntil = new Date(Date.now() + 3600000); // 1 hour from now
-      // Add a reservation record
+      computer.reservedUntil = new Date(Date.now() + 3600000);
       mockReservations.push({
         id: (mockReservations.length + 1).toString(),
         computerId: computerId,
@@ -157,7 +182,6 @@ export function autoReserveForQueue(lab: string, computerId: string, notify?: (u
         endTime: new Date(Date.now() + 3600000),
         status: "active"
       });
-      // Notify the user (in-app or browser notification)
       if (notify) {
         notify(nextUserId, computer);
       } else if (typeof window !== 'undefined' && window.Notification && Notification.permission === 'granted') {
@@ -175,25 +199,20 @@ export function autoReserveForQueue(lab: string, computerId: string, notify?: (u
 export function reserveComputerAtomic(computerId: string, userId: string): boolean {
   type LockedComputer = Computer & { _lock?: boolean };
   const computer = mockComputers.find(c => c.id === computerId) as LockedComputer | undefined;
-  // Add a temporary lock property if not present
   if (computer && typeof computer._lock === 'undefined') {
     computer._lock = false;
   }
-  // If locked or not available, fail
   if (!computer || computer.status !== 'available' || computer._lock) {
     return false;
   }
-  // Lock the computer for this operation
   computer._lock = true;
-  // Double-check status after lock
   if (computer.status !== 'available') {
     computer._lock = false;
     return false;
   }
-  // Reserve the computer
   computer.status = 'reserved';
   computer.reservedBy = userId;
-  computer.reservedUntil = new Date(Date.now() + 3600000); // 1 hour from now
+  computer.reservedUntil = new Date(Date.now() + 3600000);
   mockReservations.push({
     id: (mockReservations.length + 1).toString(),
     computerId: computerId,
@@ -202,7 +221,6 @@ export function reserveComputerAtomic(computerId: string, userId: string): boole
     endTime: new Date(Date.now() + 3600000),
     status: 'active'
   });
-  // Unlock
   computer._lock = false;
   return true;
 }

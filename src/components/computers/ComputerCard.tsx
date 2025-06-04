@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Computer } from "@/types";
@@ -16,7 +17,7 @@ interface ComputerCardProps {
 }
 
 export function ComputerCard({ computer, onReservationSuccess }: ComputerCardProps) {
-  const { reserveComputer, releaseComputer, reportFault, fixComputer } = useComputers();
+  const { reserveComputer, releaseComputer, reportFault, fixComputer, approveFix } = useComputers();
   const { currentUser } = useAuth();
   
   const handleReserve = async (startTime: Date, duration: number): Promise<boolean> => {
@@ -31,7 +32,6 @@ export function ComputerCard({ computer, onReservationSuccess }: ComputerCardPro
     console.log(`Releasing computer ${computer.id}`);
     releaseComputer(computer.id);
     
-    // Also trigger the callback on release
     if (onReservationSuccess) {
       console.log("Triggering onReservationSuccess callback after release");
       onReservationSuccess({...computer, status: "available", reservedBy: undefined, reservedUntil: undefined});
@@ -46,10 +46,13 @@ export function ComputerCard({ computer, onReservationSuccess }: ComputerCardPro
     fixComputer(computer.id);
   };
 
+  const handleApproveFix = () => {
+    approveFix(computer.id);
+  };
+
   const isReservedByCurrentUser = computer.reservedBy === currentUser?.id;
   const isOnline = computer.tracking?.online;
   
-  // Time remaining for reservation
   const reservationTimeRemaining = computer.reservedUntil ? 
     formatDistanceToNow(computer.reservedUntil, { addSuffix: true }) : "";
 
@@ -59,6 +62,7 @@ export function ComputerCard({ computer, onReservationSuccess }: ComputerCardPro
         "w-full transition-all duration-200 relative",
         isOnline ? "bg-white" : "bg-gray-100 opacity-75",
         computer.status === "faulty" && "border-red-400",
+        computer.status === "pending_approval" && "border-yellow-400",
         computer.status === "reserved" && !isReservedByCurrentUser && "border-blue-400",
         isReservedByCurrentUser && "border-green-500 shadow-md"
       )}
@@ -77,6 +81,9 @@ export function ComputerCard({ computer, onReservationSuccess }: ComputerCardPro
         )}
         {computer.isEmergency && (
           <Badge className="mb-2" variant="destructive">Emergency</Badge>
+        )}
+        {computer.status === "pending_approval" && (
+          <Badge className="mb-2" variant="outline">Pending Admin Approval</Badge>
         )}
         <ComputerSpecs 
           computer={computer} 
@@ -99,6 +106,7 @@ export function ComputerCard({ computer, onReservationSuccess }: ComputerCardPro
           onRelease={handleRelease}
           onReportFault={handleReportFault}
           onFix={handleFix}
+          onApproveFix={handleApproveFix}
           onReservationSuccess={onReservationSuccess}
         />
       </CardFooter>

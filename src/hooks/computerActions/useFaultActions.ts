@@ -1,5 +1,6 @@
+
 import { Computer, ComputerStatus } from "@/types";
-import { mockReservations, mockAdminLogs } from "@/services/mockData";
+import { mockReservations, mockAdminLogs, addNotification } from "@/services/mockData";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 
@@ -30,6 +31,7 @@ export const useFaultActions = (computers: Computer[], setComputers: (cb: (prev:
             isEmergency,
             reservedBy: undefined,
             reservedUntil: undefined,
+            reportedBy: currentUser?.id,
           };
         }
         return computer;
@@ -69,36 +71,123 @@ export const useFaultActions = (computers: Computer[], setComputers: (cb: (prev:
       });
       return;
     }
+    
     setComputers(prevComputers =>
       prevComputers.map(computer => {
         if (computer.id === computerId && computer.status === "faulty") {
           return {
             ...computer,
-            status: "available" as ComputerStatus,
-            faultDescription: undefined,
-            isEmergency: undefined,
+            status: "pending_approval" as ComputerStatus,
+            fixedBy: currentUser.id,
           };
         }
         return computer;
       })
     );
+    
     const computer = computers.find(c => c.id === computerId);
     if (computer && currentUser) {
+      // Add notification for admin to approve the fix
+      addNotification({
+        id: `fix-approval-${computerId}-${Date.now()}`,
+        type: "fix_approval_needed",
+        title: "Computer Fix Needs Approval",
+        message: `${currentUser.name} has marked ${computer.name} as fixed. Please approve.`,
+        recipientId: "admin",
+        computerId: computerId,
+        data: {
+          computerName: computer.name,
+          technicianName: currentUser.name,
+          fixedAt: new Date().toISOString()
+        },
+        createdAt: new Date().toISOString(),
+        read: false
+      });
+
       mockAdminLogs.push({
         id: `${Date.now()}-${Math.random()}`,
-        eventType: "fixed",
+        eventType: "fix_pending_approval",
         computerId: computer.id,
         computerName: computer.name,
         location: computer.location,
         technicianName: currentUser.name,
         timeFixed: new Date(),
         createdAt: new Date(),
-        details: "Marked as fixed by technician",
+        details: "Marked as fixed by technician, pending admin approval",
+        status: "pending approval",
+      });
+    }
+    
+    toast({
+      title: "Fix reported",
+      description: "Computer marked as fixed, waiting for admin approval",
+    });
+  };
+
+  const approveFix = (computerId: string) => {
+    if (!currentUser || currentUser.role !== "admin") {
+      toast({
+        title: "Permission denied",
+        description: "Only admins can approve fixes",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const computer = computers.find(c => c.id === computerId);
+    if (!computer) return;
+
+    setComputers(prevComputers =>
+      prevComputers.map(comp => {
+        if (comp.id === computerId && comp.status === "pending_approval") {
+          return {
+            ...comp,
+            status: "available" as ComputerStatus,
+            faultDescription: undefined,
+            isEmergency: undefined,
+            fixedBy: undefined,
+            reportedBy: undefined,
+          };
+        }
+        return comp;
+      })
+    );
+
+    // Notify the student who reported the fault
+    if (computer.reportedBy) {
+      addNotification({
+        id: `fix-approved-${computerId}-${Date.now()}`,
+        type: "computer_fixed",
+        title: "Computer Fixed",
+        message: `${computer.name} has been fixed and is now available for use!`,
+        recipientId: computer.reportedBy,
+        computerId: computerId,
+        data: {
+          computerName: computer.name,
+          approvedBy: currentUser.name
+        },
+        createdAt: new Date().toISOString(),
+        read: false
+      });
+    }
+
+    if (currentUser) {
+      mockAdminLogs.push({
+        id: `${Date.now()}-${Math.random()}`,
+        eventType: "fix_approved",
+        computerId: computer.id,
+        computerName: computer.name,
+        location: computer.location,
+        technicianName: currentUser.name,
+        timeFixed: new Date(),
+        createdAt: new Date(),
+        details: "Fix approved by admin",
         status: "fixed",
       });
     }
+
     toast({
-      title: "Computer fixed",
+      title: "Fix approved",
       description: "The computer is now available for use",
     });
   };
@@ -107,5 +196,6 @@ export const useFaultActions = (computers: Computer[], setComputers: (cb: (prev:
     getFaultyComputers,
     reportFault,
     fixComputer,
+    approveFix,
   };
 };
