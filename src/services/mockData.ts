@@ -209,3 +209,61 @@ export function reserveComputerAtomic(computerId: string, userId: string): boole
 
 // Add this line to create and export the logs array
 export const mockAdminLogs: AdminLog[] = [];
+
+// Mock Notifications
+export interface MockNotification {
+  id: string;
+  user_id: string;
+  type: "info" | "success" | "warning" | "error" | "action_required";
+  title: string;
+  message: string;
+  read: boolean;
+  created_at: Date;
+  data?: any;
+}
+
+export const mockNotifications: MockNotification[] = [];
+
+// Helper functions for notifications
+export function addMockNotification(notification: Omit<MockNotification, "id" | "created_at" | "read">) {
+  const newNotification: MockNotification = {
+    id: `notif-${Date.now()}-${Math.random()}`,
+    ...notification,
+    read: false,
+    created_at: new Date()
+  };
+  mockNotifications.unshift(newNotification);
+  return newNotification;
+}
+
+export function markNotificationAsRead(id: string) {
+  const notification = mockNotifications.find(n => n.id === id);
+  if (notification) {
+    notification.read = true;
+  }
+}
+
+export function markAllNotificationsAsRead(userId: string) {
+  mockNotifications
+    .filter(n => n.user_id === userId && !n.read)
+    .forEach(n => n.read = true);
+}
+
+export function deleteNotification(id: string) {
+  const index = mockNotifications.findIndex(n => n.id === id);
+  if (index > -1) {
+    mockNotifications.splice(index, 1);
+  }
+}
+
+export function deleteAllNotifications(userId: string) {
+  for (let i = mockNotifications.length - 1; i >= 0; i--) {
+    if (mockNotifications[i].user_id === userId) {
+      mockNotifications.splice(i, 1);
+    }
+  }
+}
+
+export function getUserNotifications(userId: string): MockNotification[] {
+  return mockNotifications.filter(n => n.user_id === userId);
+}

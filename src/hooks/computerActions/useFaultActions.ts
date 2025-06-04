@@ -2,11 +2,12 @@ import { Computer, ComputerStatus } from "@/types";
 import { mockReservations, mockAdminLogs, mockUsers } from "@/services/mockData";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { useNotifications } from "@/context/NotificationContext";
 
 export const useFaultActions = (computers: Computer[], setComputers: (cb: (prev: Computer[]) => Computer[]) => void) => {
   const { toast } = useToast();
   const { currentUser } = useAuth();
+  const { addNotification } = useNotifications();
 
   const getFaultyComputers = () => {
     return computers.filter(c => c.status === "faulty");
@@ -74,31 +75,24 @@ export const useFaultActions = (computers: Computer[], setComputers: (cb: (prev:
     const computer = computers.find(c => c.id === computerId);
     if (!computer) return;
 
-    // Create notification for admin to confirm the fix
+    // Send notification to admin users
     const adminUsers = mockUsers.filter(user => user.role === "admin");
     
     for (const admin of adminUsers) {
-      try {
-        await supabase
-          .from('notifications')
-          .insert({
-            user_id: admin.id,
-            type: 'action_required',
-            title: 'Computer Fix Needs Confirmation',
-            message: `Technician ${currentUser.name} has marked ${computer.name} (${computer.location}) as fixed. Please review and confirm.`,
-            data: {
-              type: 'fix_confirmation',
-              computerId: computer.id,
-              technicianId: currentUser.id,
-              technicianName: currentUser.name,
-              computerName: computer.name,
-              location: computer.location,
-              faultDescription: computer.faultDescription
-            }
-          });
-      } catch (error) {
-        console.error('Error creating admin notification:', error);
-      }
+      addNotification({
+        type: 'action_required',
+        title: 'Computer Fix Needs Confirmation',
+        message: `Technician ${currentUser.name} has marked ${computer.name} (${computer.location}) as fixed. Please review and confirm.`,
+        data: {
+          type: 'fix_confirmation',
+          computerId: computer.id,
+          technicianId: currentUser.id,
+          technicianName: currentUser.name,
+          computerName: computer.name,
+          location: computer.location,
+          faultDescription: computer.faultDescription
+        }
+      });
     }
 
     // Add to admin logs with pending status
@@ -165,23 +159,20 @@ export const useFaultActions = (computers: Computer[], setComputers: (cb: (prev:
         .map(r => r.userId);
 
       for (const userId of reservedUsers) {
-        try {
-          await supabase
-            .from('notifications')
-            .insert({
-              user_id: userId,
-              type: 'success',
-              title: 'Computer Fixed and Available',
-              message: `Good news! ${computer.name} (${computer.location}) has been fixed and is now available for reservation.`,
-              data: {
-                type: 'computer_fixed',
-                computerId: computer.id,
-                computerName: computer.name,
-                location: computer.location
-              }
-            });
-        } catch (error) {
-          console.error('Error creating student notification:', error);
+        // Find the user to send notification
+        const user = mockUsers.find(u => u.id === userId);
+        if (user) {
+          addNotification({
+            type: 'success',
+            title: 'Computer Fixed and Available',
+            message: `Good news! ${computer.name} (${computer.location}) has been fixed and is now available for reservation.`,
+            data: {
+              type: 'computer_fixed',
+              computerId: computer.id,
+              computerName: computer.name,
+              location: computer.location
+            }
+          });
         }
       }
 
