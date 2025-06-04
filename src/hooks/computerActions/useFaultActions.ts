@@ -1,3 +1,4 @@
+
 import { Computer, ComputerStatus } from "@/types";
 import { mockReservations, mockAdminLogs, mockUsers } from "@/services/mockData";
 import { useToast } from "@/hooks/use-toast";
@@ -14,32 +15,31 @@ export const useFaultActions = (computers: Computer[], setComputers: (cb: (prev:
   };
 
   const reportFault = (computerId: string, description: string, isEmergency: boolean = false) => {
-    setComputers(prevComputers =>
-      prevComputers.map(computer => {
-        if (computer.id === computerId) {
-          if (computer.status === "reserved") {
-            const reservation = mockReservations.find(
-              r => r.computerId === computerId && r.status === "active"
-            );
-            if (reservation) {
-              reservation.status = "cancelled";
-            }
-          }
-          return {
-            ...computer,
-            status: "faulty" as ComputerStatus,
-            faultDescription: description,
-            isEmergency,
-            reservedBy: undefined,
-            reservedUntil: undefined,
-          };
-        }
-        return computer;
-      })
-    );
-
+    // Don't change computer status immediately - wait for admin confirmation
     const computer = computers.find(c => c.id === computerId);
     if (computer && currentUser) {
+      // Send notification to admin users for fault confirmation
+      const adminUsers = mockUsers.filter(user => user.role === "admin");
+      
+      for (const admin of adminUsers) {
+        addNotification({
+          type: isEmergency ? 'error' : 'action_required',
+          title: `${isEmergency ? 'EMERGENCY: ' : ''}Fault Report Needs Confirmation`,
+          message: `${currentUser.name} reported an issue with ${computer.name} (${computer.location}): "${description}". Please confirm if this computer should be marked as faulty.`,
+          data: {
+            type: 'fault_confirmation',
+            computerId: computer.id,
+            reporterId: currentUser.id,
+            reporterName: currentUser.name,
+            computerName: computer.name,
+            location: computer.location,
+            description: description,
+            isEmergency: isEmergency
+          }
+        });
+      }
+
+      // Log the fault report as pending confirmation
       mockAdminLogs.push({
         id: `${Date.now()}-${Math.random()}`,
         eventType: "fault_reported",
@@ -49,17 +49,103 @@ export const useFaultActions = (computers: Computer[], setComputers: (cb: (prev:
         reporteeName: currentUser.name,
         timeReported: new Date(),
         createdAt: new Date(),
-        details: description,
-        status: "not fixed",
+        details: `${description} - Pending admin confirmation`,
+        status: "pending confirmation",
       });
     }
 
     const emergencyText = isEmergency ? "emergency " : "";
     toast({
       title: `${isEmergency ? "Emergency " : ""}Fault reported`,
-      description: `The ${emergencyText}issue has been reported to technicians`,
+      description: `The ${emergencyText}issue has been reported to administrators for confirmation`,
       variant: isEmergency ? "destructive" : "default",
     });
+  };
+
+  const confirmFaultReport = async (computerId: string, confirmed: boolean, adminReason?: string) => {
+    if (!currentUser || currentUser.role !== "admin") {
+      toast({
+        title: "Permission denied",
+        description: "Only admins can confirm fault reports",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const computer = computers.find(c => c.id === computerId);
+    if (!computer) return;
+
+    if (confirmed) {
+      // Mark computer as faulty and cancel any active reservations
+      setComputers(prevComputers =>
+        prevComputers.map(comp => {
+          if (comp.id === computerId) {
+            if (comp.status === "reserved") {
+              const reservation = mockReservations.find(
+                r => r.computerId === computerId && r.status === "active"
+              );
+              if (reservation) {
+                reservation.status = "cancelled";
+              }
+            }
+            return {
+              ...comp,
+              status: "faulty" as ComputerStatus,
+              faultDescription: comp.faultDescription || "Confirmed by admin",
+              reservedBy: undefined,
+              reservedUntil: undefined,
+            };
+          }
+          return comp;
+        })
+      );
+
+      // Update log entry
+      const logEntry = mockAdminLogs.find(log => 
+        log.computerId === computerId && log.status === "pending confirmation"
+      );
+      if (logEntry) {
+        logEntry.status = "confirmed faulty";
+        logEntry.details = `Fault confirmed by admin ${currentUser.name}. Computer marked as faulty.`;
+      }
+
+      // Notify technicians about the confirmed fault
+      const technicianUsers = mockUsers.filter(user => user.role === "technician");
+      
+      for (const technician of technicianUsers) {
+        addNotification({
+          type: 'action_required',
+          title: 'Fault Confirmed - Action Required',
+          message: `Admin confirmed fault on ${computer.name} (${computer.location}). Please investigate and repair.`,
+          data: {
+            type: 'repair_needed',
+            computerId: computer.id,
+            computerName: computer.name,
+            location: computer.location,
+            faultDescription: computer.faultDescription
+          }
+        });
+      }
+
+      toast({
+        title: "Fault confirmed",
+        description: "Computer marked as faulty. Technicians have been notified.",
+      });
+    } else {
+      // Fault denied - computer remains operational
+      const logEntry = mockAdminLogs.find(log => 
+        log.computerId === computerId && log.status === "pending confirmation"
+      );
+      if (logEntry) {
+        logEntry.status = "fault denied";
+        logEntry.details = `Fault report denied by admin ${currentUser.name}. ${adminReason || "Computer remains operational."}`;
+      }
+
+      toast({
+        title: "Fault report denied",
+        description: "Computer remains operational",
+      });
+    }
   };
 
   const fixComputer = async (computerId: string) => {
@@ -75,27 +161,22 @@ export const useFaultActions = (computers: Computer[], setComputers: (cb: (prev:
     const computer = computers.find(c => c.id === computerId);
     if (!computer) return;
 
-    // Send notification to admin users
-    const adminUsers = mockUsers.filter(user => user.role === "admin");
-    
-    for (const admin of adminUsers) {
-      addNotification({
-        type: 'action_required',
-        title: 'Computer Fix Needs Confirmation',
-        message: `Technician ${currentUser.name} has marked ${computer.name} (${computer.location}) as fixed. Please review and confirm.`,
-        data: {
-          type: 'fix_confirmation',
-          computerId: computer.id,
-          technicianId: currentUser.id,
-          technicianName: currentUser.name,
-          computerName: computer.name,
-          location: computer.location,
-          faultDescription: computer.faultDescription
+    // Technician can directly fix the computer - no admin confirmation needed for repairs
+    setComputers(prevComputers =>
+      prevComputers.map(comp => {
+        if (comp.id === computerId && comp.status === "faulty") {
+          return {
+            ...comp,
+            status: "available" as ComputerStatus,
+            faultDescription: undefined,
+            isEmergency: undefined,
+          };
         }
-      });
-    }
+        return comp;
+      })
+    );
 
-    // Add to admin logs with pending status
+    // Update logs
     mockAdminLogs.push({
       id: `${Date.now()}-${Math.random()}`,
       eventType: "fixed",
@@ -105,103 +186,42 @@ export const useFaultActions = (computers: Computer[], setComputers: (cb: (prev:
       technicianName: currentUser.name,
       timeFixed: new Date(),
       createdAt: new Date(),
-      details: "Marked as fixed by technician - pending admin confirmation",
-      status: "pending confirmation",
+      details: "Computer repaired and returned to service",
+      status: "fixed",
     });
+
+    // Notify students who might be interested
+    const reservedUsers = mockReservations
+      .filter(r => r.computerId === computerId && r.status === "cancelled")
+      .map(r => r.userId);
+
+    for (const userId of reservedUsers) {
+      const user = mockUsers.find(u => u.id === userId);
+      if (user) {
+        addNotification({
+          type: 'success',
+          title: 'Computer Fixed and Available',
+          message: `Good news! ${computer.name} (${computer.location}) has been repaired and is now available for reservation.`,
+          data: {
+            type: 'computer_fixed',
+            computerId: computer.id,
+            computerName: computer.name,
+            location: computer.location
+          }
+        });
+      }
+    }
 
     toast({
-      title: "Fix submitted for review",
-      description: "Admin will review and confirm the fix",
+      title: "Computer fixed",
+      description: "Computer is now available for use",
     });
-  };
-
-  const confirmFix = async (computerId: string, confirmed: boolean, adminReason?: string) => {
-    if (!currentUser || currentUser.role !== "admin") {
-      toast({
-        title: "Permission denied",
-        description: "Only admins can confirm fixes",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const computer = computers.find(c => c.id === computerId);
-    if (!computer) return;
-
-    if (confirmed) {
-      // Mark computer as available
-      setComputers(prevComputers =>
-        prevComputers.map(comp => {
-          if (comp.id === computerId && comp.status === "faulty") {
-            return {
-              ...comp,
-              status: "available" as ComputerStatus,
-              faultDescription: undefined,
-              isEmergency: undefined,
-            };
-          }
-          return comp;
-        })
-      );
-
-      // Update logs
-      const logEntry = mockAdminLogs.find(log => 
-        log.computerId === computerId && log.status === "pending confirmation"
-      );
-      if (logEntry) {
-        logEntry.status = "confirmed and fixed";
-        logEntry.details = `Fix confirmed by admin ${currentUser.name}. Computer is now available.`;
-      }
-
-      // Notify students who might be interested
-      const reservedUsers = mockReservations
-        .filter(r => r.computerId === computerId && r.status === "cancelled")
-        .map(r => r.userId);
-
-      for (const userId of reservedUsers) {
-        // Find the user to send notification
-        const user = mockUsers.find(u => u.id === userId);
-        if (user) {
-          addNotification({
-            type: 'success',
-            title: 'Computer Fixed and Available',
-            message: `Good news! ${computer.name} (${computer.location}) has been fixed and is now available for reservation.`,
-            data: {
-              type: 'computer_fixed',
-              computerId: computer.id,
-              computerName: computer.name,
-              location: computer.location
-            }
-          });
-        }
-      }
-
-      toast({
-        title: "Fix confirmed",
-        description: "Computer is now available for use",
-      });
-    } else {
-      // Keep computer as faulty
-      const logEntry = mockAdminLogs.find(log => 
-        log.computerId === computerId && log.status === "pending confirmation"
-      );
-      if (logEntry) {
-        logEntry.status = "fix denied";
-        logEntry.details = `Fix denied by admin ${currentUser.name}. ${adminReason || "Reason not provided"}`;
-      }
-
-      toast({
-        title: "Fix denied",
-        description: "Computer remains in faulty status",
-        variant: "destructive",
-      });
-    }
   };
 
   return {
     getFaultyComputers,
     reportFault,
+    confirmFaultReport,
     fixComputer,
-    confirmFix,
   };
 };

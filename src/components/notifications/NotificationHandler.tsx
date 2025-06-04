@@ -3,12 +3,12 @@ import React, { useEffect, useState } from "react";
 import { useNotifications } from "@/context/NotificationContext";
 import { useComputers } from "@/context/ComputerContext";
 import { useAuth } from "@/context/AuthContext";
-import { AdminConfirmationDialog } from "./AdminConfirmationDialog";
+import { FaultConfirmationDialog } from "./FaultConfirmationDialog";
 import { Computer } from "@/types";
 
 export function NotificationHandler() {
   const { notifications, markAsRead } = useNotifications();
-  const { confirmFix, computers } = useComputers();
+  const { confirmFaultReport, computers } = useComputers();
   const { currentUser } = useAuth();
   const [confirmationDialog, setConfirmationDialog] = useState<{
     isOpen: boolean;
@@ -22,12 +22,12 @@ export function NotificationHandler() {
 
   useEffect(() => {
     if (currentUser?.role === "admin") {
-      const fixConfirmationNotifications = notifications.filter(
-        n => !n.read && n.data?.type === "fix_confirmation"
+      const faultConfirmationNotifications = notifications.filter(
+        n => !n.read && n.data?.type === "fault_confirmation"
       );
 
-      if (fixConfirmationNotifications.length > 0) {
-        const latestNotification = fixConfirmationNotifications[0];
+      if (faultConfirmationNotifications.length > 0) {
+        const latestNotification = faultConfirmationNotifications[0];
         const computer = computers.find(c => c.id === latestNotification.data.computerId);
         
         if (computer) {
@@ -43,10 +43,10 @@ export function NotificationHandler() {
 
   const handleConfirmation = async (confirmed: boolean) => {
     if (confirmationDialog.notification && confirmationDialog.computer) {
-      await confirmFix(
+      await confirmFaultReport(
         confirmationDialog.computer.id,
         confirmed,
-        confirmed ? undefined : "Admin review deemed fix incomplete"
+        confirmed ? undefined : "Admin review determined computer is operational"
       );
       
       // Mark notification as read
@@ -69,12 +69,14 @@ export function NotificationHandler() {
   };
 
   return (
-    <AdminConfirmationDialog
+    <FaultConfirmationDialog
       isOpen={confirmationDialog.isOpen}
       onClose={handleClose}
       onConfirm={handleConfirmation}
       computer={confirmationDialog.computer}
-      technicianName={confirmationDialog.notification?.data?.technicianName || ""}
+      reporterName={confirmationDialog.notification?.data?.reporterName || ""}
+      description={confirmationDialog.notification?.data?.description || ""}
+      isEmergency={confirmationDialog.notification?.data?.isEmergency || false}
     />
   );
 }

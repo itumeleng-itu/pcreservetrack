@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 import { Computer, ComputerTracking } from "@/types";
 import { useComputerState } from "./computerActions/useComputerState";
@@ -23,7 +22,7 @@ export const useComputerActions = (initialComputers: Computer[]) => {
     getFaultyComputers,
     reportFault,
     fixComputer,
-    confirmFix
+    confirmFaultReport
   } = useFaultActions(computers, setComputers);
 
   const { updateComputersFromTracking } = useTrackingUpdate(setComputers);
@@ -45,7 +44,7 @@ export const useComputerActions = (initialComputers: Computer[]) => {
     releaseComputer,
     reportFault,
     fixComputer,
-    confirmFix,
+    confirmFaultReport,
     updateComputersFromTracking
   };
 };
