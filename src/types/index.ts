@@ -12,7 +12,7 @@ export interface User {
   avatar_url?: string; // Added avatar URL
 }
 
-export type ComputerStatus = "available" | "reserved" | "faulty";
+export type ComputerStatus = "available" | "reserved" | "faulty" | "pending_approval";
 
 export interface Computer {
   id: string;
@@ -24,6 +24,7 @@ export interface Computer {
   reservedUntil?: Date;
   faultDescription?: string;
   isEmergency?: boolean;
+  reportedBy?: string;
   lastSeen?: Date;
   ipAddress?: string;
   macAddress?: string;
@@ -56,7 +57,9 @@ export type LogEventType =
   | "fault_reported"
   | "reserved"
   | "reservation_cancelled"
-  | "fixed";
+  | "fixed"
+  | "fix_pending_approval"
+  | "fix_approved";
 
 export interface AdminLog {
   id: string;
