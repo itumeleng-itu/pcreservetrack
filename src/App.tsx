@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { ComputerProvider } from "./context/ComputerContext";
+import { RealtimeProvider } from "./context/RealtimeContext";
 import { TrackingProvider } from "./context/TrackingContext";
 import { useEffect } from "react";
 import Index from "./pages/Index";
@@ -33,9 +34,10 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <ComputerProvider>
-          <TrackingProvider>
-            <TooltipProvider>
+        <RealtimeProvider>
+          <ComputerProvider>
+            <TrackingProvider>
+              <TooltipProvider>
               <Toaster />
               <Sonner />
               <BrowserRouter basename={basePath}>
@@ -50,7 +52,8 @@ const App = () => {
             </TooltipProvider>
           </TrackingProvider>
         </ComputerProvider>
-      </AuthProvider>
+      </RealtimeProvider>
+    </AuthProvider>
     </QueryClientProvider>
   );
 };

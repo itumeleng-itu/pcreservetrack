@@ -7,6 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 import { ComputerCardHeader } from "./ComputerCardHeader";
 import { ComputerSpecs } from "./ComputerSpecs";
 import { ComputerCardActions } from "./ComputerCardActions";
+import { RealtimeComputerStatus } from "../realtime/RealtimeComputerStatus";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
@@ -73,6 +74,9 @@ export function ComputerCard({ computer, onReservationSuccess }: ComputerCardPro
         </div>
       )}
       <ComputerCardHeader computer={computer} />
+      <div className="px-4 pb-2">
+        <RealtimeComputerStatus computerId={computer.id} />
+      </div>
       <CardContent className="relative">
         {!isOnline && (
           <div className="absolute inset-0 bg-gray-50/90 backdrop-blur-sm flex items-center justify-center">

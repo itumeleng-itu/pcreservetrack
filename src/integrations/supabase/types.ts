@@ -14,6 +14,96 @@ export type Database = {
   }
   public: {
     Tables: {
+      activity_logs: {
+        Row: {
+          action_type: string
+          created_at: string | null
+          entity_id: string
+          entity_type: string
+          id: string
+          ip_address: unknown | null
+          metadata: Json | null
+          new_data: Json | null
+          old_data: Json | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action_type: string
+          created_at?: string | null
+          entity_id: string
+          entity_type: string
+          id?: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          new_data?: Json | null
+          old_data?: Json | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action_type?: string
+          created_at?: string | null
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          new_data?: Json | null
+          old_data?: Json | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      computer_heartbeats: {
+        Row: {
+          active_user_id: string | null
+          computer_id: number
+          cpu_usage: number | null
+          id: string
+          memory_usage: number | null
+          network_latency: number | null
+          status: string
+          timestamp: string | null
+        }
+        Insert: {
+          active_user_id?: string | null
+          computer_id: number
+          cpu_usage?: number | null
+          id?: string
+          memory_usage?: number | null
+          network_latency?: number | null
+          status: string
+          timestamp?: string | null
+        }
+        Update: {
+          active_user_id?: string | null
+          computer_id?: number
+          cpu_usage?: number | null
+          id?: string
+          memory_usage?: number | null
+          network_latency?: number | null
+          status?: string
+          timestamp?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "computer_heartbeats_computer_id_fkey"
+            columns: ["computer_id"]
+            isOneToOne: false
+            referencedRelation: "computers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "computer_heartbeats_computer_id_fkey"
+            columns: ["computer_id"]
+            isOneToOne: false
+            referencedRelation: "computers_with_tracking"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       computers: {
         Row: {
           created_at: string | null
@@ -295,6 +385,42 @@ export type Database = {
         }
         Relationships: []
       }
+      real_time_messages: {
+        Row: {
+          content: string
+          created_at: string | null
+          data: Json | null
+          id: string
+          message_type: string
+          read_at: string | null
+          recipient_id: string | null
+          sender_id: string | null
+          title: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          data?: Json | null
+          id?: string
+          message_type: string
+          read_at?: string | null
+          recipient_id?: string | null
+          sender_id?: string | null
+          title?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          data?: Json | null
+          id?: string
+          message_type?: string
+          read_at?: string | null
+          recipient_id?: string | null
+          sender_id?: string | null
+          title?: string | null
+        }
+        Relationships: []
+      }
       registered: {
         Row: {
           avatar_url: string | null
@@ -505,6 +631,36 @@ export type Database = {
           badge_name?: string
           earned_at?: string | null
           id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_presence: {
+        Row: {
+          current_page: string | null
+          device_info: Json | null
+          id: string
+          last_seen: string | null
+          status: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          current_page?: string | null
+          device_info?: Json | null
+          id?: string
+          last_seen?: string | null
+          status: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          current_page?: string | null
+          device_info?: Json | null
+          id?: string
+          last_seen?: string | null
+          status?: string
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: []
