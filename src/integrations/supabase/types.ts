@@ -117,6 +117,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "faults_computer_id_fkey"
+            columns: ["computer_id"]
+            isOneToOne: false
+            referencedRelation: "computers_with_tracking"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "faults_reported_by_fkey"
             columns: ["reported_by"]
             isOneToOne: false
@@ -189,6 +196,13 @@ export type Database = {
             columns: ["computer_id"]
             isOneToOne: false
             referencedRelation: "computers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_logs_computer_id_fkey"
+            columns: ["computer_id"]
+            isOneToOne: false
+            referencedRelation: "computers_with_tracking"
             referencedColumns: ["id"]
           },
           {
@@ -375,6 +389,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "reservations_computer_id_fkey"
+            columns: ["computer_id"]
+            isOneToOne: false
+            referencedRelation: "computers_with_tracking"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "reservations_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
@@ -423,6 +444,13 @@ export type Database = {
             columns: ["computer_id"]
             isOneToOne: false
             referencedRelation: "computers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "system_logs_computer_id_fkey"
+            columns: ["computer_id"]
+            isOneToOne: false
+            referencedRelation: "computers_with_tracking"
             referencedColumns: ["id"]
           },
         ]
@@ -510,7 +538,75 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      computers_with_tracking: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          fault_description: string | null
+          id: number | null
+          ip_address: string | null
+          is_emergency: boolean | null
+          last_maintenance: string | null
+          last_seen: string | null
+          location: string | null
+          mac_address: string | null
+          name: string | null
+          reserved_by: string | null
+          reserved_until: string | null
+          specs: string | null
+          status: string | null
+          tracking_cpu_usage: number | null
+          tracking_last_heartbeat: string | null
+          tracking_memory_usage: number | null
+          tracking_online: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          fault_description?: string | null
+          id?: number | null
+          ip_address?: string | null
+          is_emergency?: boolean | null
+          last_maintenance?: string | null
+          last_seen?: string | null
+          location?: string | null
+          mac_address?: string | null
+          name?: string | null
+          reserved_by?: string | null
+          reserved_until?: string | null
+          specs?: string | null
+          status?: string | null
+          tracking_cpu_usage?: number | null
+          tracking_last_heartbeat?: string | null
+          tracking_memory_usage?: number | null
+          tracking_online?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          fault_description?: string | null
+          id?: number | null
+          ip_address?: string | null
+          is_emergency?: boolean | null
+          last_maintenance?: string | null
+          last_seen?: string | null
+          location?: string | null
+          mac_address?: string | null
+          name?: string | null
+          reserved_by?: string | null
+          reserved_until?: string | null
+          specs?: string | null
+          status?: string | null
+          tracking_cpu_usage?: number | null
+          tracking_last_heartbeat?: string | null
+          tracking_memory_usage?: number | null
+          tracking_online?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       generate_reservation_code: {

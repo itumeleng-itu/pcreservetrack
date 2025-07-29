@@ -1,14 +1,11 @@
 
 import React, { createContext, useContext, ReactNode } from "react";
 import { ComputerContextType } from "../types/computerContext";
-import { generateExtendedComputers } from "../utils/computerUtils";
 import { useComputerActions } from "../hooks/useComputerActions";
 
 const ComputerContext = createContext<ComputerContextType | undefined>(undefined);
 
 export const ComputerProvider = ({ children }: { children: ReactNode }) => {
-  const initialComputers = generateExtendedComputers();
-  
   const {
     computers,
     getAvailableComputers,
@@ -22,7 +19,7 @@ export const ComputerProvider = ({ children }: { children: ReactNode }) => {
     fixComputer,
     approveFix,
     updateComputersFromTracking
-  } = useComputerActions(initialComputers);
+  } = useComputerActions();
 
   return (
     <ComputerContext.Provider

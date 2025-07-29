@@ -4,7 +4,7 @@ import { mockReservations, mockAdminLogs, addNotification } from "@/services/moc
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 
-export const useFaultActions = (computers: Computer[], setComputers: (cb: (prev: Computer[]) => Computer[]) => void) => {
+export const useFaultActions = (computers: Computer[], setComputers: (cb: (prev: Computer[]) => Computer[]) => void, updateComputerInDB?: (computerId: string, updates: Partial<Computer>) => Promise<boolean>) => {
   const { toast } = useToast();
   const { currentUser } = useAuth();
 
@@ -13,6 +13,16 @@ export const useFaultActions = (computers: Computer[], setComputers: (cb: (prev:
   };
 
   const reportFault = (computerId: string, description: string, isEmergency: boolean = false) => {
+    const updates = {
+      status: "faulty" as ComputerStatus,
+      faultDescription: description,
+      isEmergency,
+      reservedBy: undefined,
+      reservedUntil: undefined,
+      reportedBy: currentUser?.id,
+    };
+
+    // Update local state
     setComputers(prevComputers =>
       prevComputers.map(computer => {
         if (computer.id === computerId) {
@@ -24,19 +34,16 @@ export const useFaultActions = (computers: Computer[], setComputers: (cb: (prev:
               reservation.status = "cancelled";
             }
           }
-          return {
-            ...computer,
-            status: "faulty" as ComputerStatus,
-            faultDescription: description,
-            isEmergency,
-            reservedBy: undefined,
-            reservedUntil: undefined,
-            reportedBy: currentUser?.id,
-          };
+          return { ...computer, ...updates };
         }
         return computer;
       })
     );
+
+    // Update database if function is available
+    if (updateComputerInDB) {
+      updateComputerInDB(computerId, updates);
+    }
 
     const computer = computers.find(c => c.id === computerId);
     if (computer && currentUser) {

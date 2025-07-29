@@ -7,7 +7,8 @@ import { useReservationExpiry } from "./useReservationExpiry";
 
 export const useReservationActions = (
   computers: Computer[],
-  setComputers: (cb: (prev: Computer[]) => Computer[]) => void
+  setComputers: (cb: (prev: Computer[]) => Computer[]) => void,
+  updateComputerInDB?: (computerId: string, updates: Partial<Computer>) => Promise<boolean>
 ) => {
   // Query-related functions
   const { 

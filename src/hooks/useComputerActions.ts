@@ -5,11 +5,24 @@ import { useComputerState } from "./computerActions/useComputerState";
 import { useReservationActions } from "./computerActions/useReservationActions";
 import { useFaultActions } from "./computerActions/useFaultActions";
 import { useTrackingUpdate } from "./computerActions/useTrackingUpdate";
+import { useSupabaseComputers } from "./useSupabaseComputers";
 
-export const useComputerActions = (initialComputers: Computer[]) => {
-  const { computers, setComputers } = useComputerState(initialComputers);
+export const useComputerActions = () => {
+  const { 
+    computers: dbComputers, 
+    isLoading, 
+    updateComputer: updateComputerInDB,
+    refetchComputers 
+  } = useSupabaseComputers();
+  
+  const { computers, setComputers } = useComputerState(dbComputers);
 
-  // Reservation logic
+  // Sync local state with database state
+  useEffect(() => {
+    setComputers(dbComputers);
+  }, [dbComputers, setComputers]);
+
+  // Reservation logic with database integration
   const {
     getAvailableComputers,
     getReservedComputers,
@@ -18,15 +31,15 @@ export const useComputerActions = (initialComputers: Computer[]) => {
     reserveComputer,
     releaseComputer,
     checkExpiredReservations,
-  } = useReservationActions(computers, setComputers);
+  } = useReservationActions(computers, setComputers, updateComputerInDB);
 
-  // Fault logic
+  // Fault logic with database integration
   const {
     getFaultyComputers,
     reportFault,
     fixComputer,
     approveFix
-  } = useFaultActions(computers, setComputers);
+  } = useFaultActions(computers, setComputers, updateComputerInDB);
 
   // Tracking updates
   const { updateComputersFromTracking } = useTrackingUpdate(setComputers);
