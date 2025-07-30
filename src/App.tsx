@@ -8,6 +8,7 @@ import { ComputerProvider } from "./context/ComputerContext";
 import { RealtimeProvider } from "./context/RealtimeContext";
 import { TrackingProvider } from "./context/TrackingContext";
 import { useEffect } from "react";
+import { useDataSync } from "./hooks/useDataSync";
 import Index from "./pages/Index";
 import AuthPage from "./pages/AuthPage";
 import Dashboard from "./pages/Dashboard";
@@ -17,6 +18,26 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 const basePath = import.meta.env.MODE === 'production' ? '/pcreservetrack' : '';
+
+const AppContent = () => {
+  useDataSync(); // Ensure all data is synced across the app
+  
+  return (
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <BrowserRouter basename={basePath}>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/auth" element={<AuthPage />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </BrowserRouter>
+    </TooltipProvider>
+  );
+};
 
 const App = () => {
   // Initialize dark mode based on localStorage or user preference
@@ -37,23 +58,11 @@ const App = () => {
         <RealtimeProvider>
           <ComputerProvider>
             <TrackingProvider>
-              <TooltipProvider>
-              <Toaster />
-              <Sonner />
-              <BrowserRouter basename={basePath}>
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/auth" element={<AuthPage />} />
-                  <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/profile" element={<ProfilePage />} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </BrowserRouter>
-            </TooltipProvider>
-          </TrackingProvider>
-        </ComputerProvider>
-      </RealtimeProvider>
-    </AuthProvider>
+              <AppContent />
+            </TrackingProvider>
+          </ComputerProvider>
+        </RealtimeProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 };
