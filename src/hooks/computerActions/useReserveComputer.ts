@@ -1,5 +1,5 @@
 import { Computer, ComputerStatus } from "@/types";
-import { mockReservations, mockAdminLogs } from "@/services/mockData";
+import { mockAdminLogs } from "@/services/mockData";
 import { isWithinBookingHours, getBookingHoursMessage } from "@/utils/computerUtils";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 export const useReserveComputer = ( // This hook is used to reserve a computer
   computers: Computer[], 
   setComputers: (cb: (prev: Computer[]) => Computer[]) => void,
-  hasActiveReservation: (userId: string) => boolean
+  hasActiveReservation: (userId: string) => Promise<boolean>
 ) => {
   const { toast } = useToast();
   const { currentUser } = useAuth();
@@ -43,16 +43,18 @@ export const useReserveComputer = ( // This hook is used to reserve a computer
       return [false, null];
     }
 
-    // Check again if the computer is still available for the requested time slot
-    // Find all reservations for this computer
-    const overlapping = mockReservations.some(r =>
-      r.computerId === computerId &&
-      r.status === "active" &&
-      ((startTime < r.endTime && startTime >= r.startTime) || // starts during another reservation
-       (new Date(startTime.getTime() + duration * 60 * 60 * 1000) > r.startTime && new Date(startTime.getTime() + duration * 60 * 60 * 1000) <= r.endTime) || // ends during another reservation
-       (startTime <= r.startTime && new Date(startTime.getTime() + duration * 60 * 60 * 1000) >= r.endTime)) // fully overlaps
-    );
-    if (overlapping) {
+    // Calculate reservation end time
+    const endTime = new Date(startTime.getTime() + duration * 60 * 60 * 1000);
+
+    // Check for conflicts in the database
+    const { data: conflictingReservations } = await supabase
+      .from('reservations')
+      .select('*')
+      .eq('computer_id', parseInt(computerId))
+      .eq('status', 'active')
+      .or(`start_time.lte.${endTime.toISOString()},end_time.gte.${startTime.toISOString()}`);
+
+    if (conflictingReservations && conflictingReservations.length > 0) {
       toast({
         title: "Reservation conflict",
         description: "This computer is already reserved for the selected time slot.",
@@ -61,39 +63,65 @@ export const useReserveComputer = ( // This hook is used to reserve a computer
       return [false, null];
     }
 
-    if (currentUser.role === "student" && hasActiveReservation(currentUser.id)) {
-      toast({
-        title: "Reservation failed",
-        description: "Students can only reserve one computer at a time",
-        variant: "destructive",
-      });
-      return [false, null];
+    // Check if student already has an active reservation
+    if (currentUser.role === "student") {
+      const { data: userReservations } = await supabase
+        .from('reservations')
+        .select('*')
+        .eq('user_id', currentUser.id)
+        .eq('status', 'active');
+
+      if (userReservations && userReservations.length > 0) {
+        toast({
+          title: "Reservation failed",
+          description: "Students can only reserve one computer at a time",
+          variant: "destructive",
+        });
+        return [false, null];
+      }
     }
 
     try {
-      // Calculate reservation end time
-      const endTime = new Date(startTime.getTime() + duration * 60 * 60 * 1000);
-      
       console.log(`Creating reservation for computer ${computerId} from ${startTime.toISOString()} to ${endTime.toISOString()}`);
       
-      // Create a new reservation record in mockReservations
-      const newReservation = {
-        id: String(mockReservations.length + 1),
-        computerId,
-        userId: currentUser.id,
-        startTime,
-        endTime,
-        status: "active" as const
-      };
+      // Create reservation in database using the reserve_computer function
+      const { data: reservationResult, error } = await supabase.rpc('reserve_computer', {
+        p_computer_id: parseInt(computerId),
+        p_user_id: currentUser.id,
+        p_start_time: startTime.toISOString(),
+        p_end_time: endTime.toISOString()
+      });
+
+      if (error) {
+        console.error("Database reservation error:", error);
+        toast({
+          title: "Reservation failed",
+          description: error.message || "Failed to create reservation",
+          variant: "destructive",
+        });
+        return [false, null];
+      }
+
+      // Check if the function returned an error
+      if (reservationResult) {
+        const result = reservationResult as any;
+        if (result && typeof result === 'object' && 'error' in result) {
+          toast({
+            title: "Reservation failed", 
+            description: result.error === 'COMPUTER_ALREADY_RESERVED' 
+              ? "This computer is already reserved for the selected time slot"
+              : "Failed to create reservation",
+            variant: "destructive",
+          });
+          return [false, null];
+        }
+      }
       
-      // Add to mock reservations
-      mockReservations.push(newReservation);
-      console.log("Reservation created:", newReservation);
-      console.log("All reservations:", mockReservations);
+      console.log("Database reservation successful");
       
       let updatedComputer: Computer | null = null;
       
-      // Update computers state to reflect the reservation if it is for now or in the future
+      // Update computers state to reflect the reservation
       setComputers(prevComputers => {
         const updatedComputers = prevComputers.map(computer => {
           if (computer.id === computerId) {

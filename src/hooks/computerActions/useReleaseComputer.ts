@@ -1,5 +1,5 @@
 import { Computer, ComputerStatus } from "@/types";
-import { mockReservations, mockAdminLogs } from "@/services/mockData";
+import { mockAdminLogs } from "@/services/mockData";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -38,17 +38,42 @@ export const useReleaseComputer = (
 
       console.log(`Releasing computer ${computerId} from reservation`);
       
+      // Update reservation status in database
+      const { error: reservationError } = await supabase
+        .from('reservations')
+        .update({ status: 'completed' })
+        .eq('computer_id', parseInt(computerId))
+        .eq('user_id', currentUser?.id)
+        .eq('status', 'active');
+
+      if (reservationError) {
+        console.error("Error updating reservation:", reservationError);
+        toast({
+          title: "Release failed",
+          description: "Failed to update reservation in database",
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      // Update computer status in database
+      const { error: computerError } = await supabase
+        .from('computers')
+        .update({ 
+          status: 'available',
+          reserved_by: null,
+          reserved_until: null
+        })
+        .eq('id', parseInt(computerId));
+
+      if (computerError) {
+        console.error("Error updating computer:", computerError);
+        // Continue anyway as reservation was updated
+      }
+      
       setComputers(prevComputers => {
         const updatedComputers = prevComputers.map(computer => {
           if (computer.id === computerId && computer.status === "reserved") {
-            const reservation = mockReservations.find(
-              r => r.computerId === computerId && r.status === "active"
-            );
-            if (reservation) {
-              console.log(`Completing reservation ${reservation.id}`);
-              reservation.status = "completed";
-            }
-            
             console.log(`Updating computer ${computerId} status to available`);
             return {
               ...computer,

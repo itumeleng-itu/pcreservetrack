@@ -18,11 +18,13 @@ export const useReservationActions = (
     getAvailableComputers, 
     getReservedComputers, 
     hasActiveReservation,
-    isComputerAlreadyReserved
+    hasActiveReservationAsync,
+    isComputerAlreadyReserved,
+    isComputerReservedForTime
   } = useReservationQueries(computers);
   
   // Reservation creation
-  const { reserveComputer: originalReserveComputer } = useReserveComputer(computers, setComputers, hasActiveReservation);
+  const { reserveComputer: originalReserveComputer } = useReserveComputer(computers, setComputers, hasActiveReservationAsync);
   
   // Reservation release
   const { releaseComputer: originalReleaseComputer } = useReleaseComputer(computers, setComputers);
