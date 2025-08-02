@@ -777,6 +777,14 @@ export type Database = {
         Args: { user_uuid: string }
         Returns: string
       }
+      log_auth_attempt: {
+        Args: {
+          p_staff_num: string
+          p_success: boolean
+          p_failure_reason?: string
+        }
+        Returns: undefined
+      }
       log_security_event: {
         Args: { p_user_id: string; p_event_type: string; p_details?: Json }
         Returns: undefined

@@ -56,6 +56,25 @@ export function ReservationDialog({ onReserve, onReservationSuccess, computer }:
     try {
       const start = new Date(startTime);
       const duration = parseFloat(reservationHours);
+      
+      // Enhanced validation
+      if (isNaN(start.getTime())) {
+        console.error("Invalid start time");
+        return;
+      }
+      
+      if (isNaN(duration) || duration <= 0 || duration > 8) {
+        console.error("Invalid duration");
+        return;
+      }
+      
+      // Ensure reservation is not in the past
+      const now = new Date();
+      if (start <= now) {
+        console.error("Cannot reserve in the past");
+        return;
+      }
+      
       const success = await onReserve(start, duration);
       if (success) {
         setOpen(false);

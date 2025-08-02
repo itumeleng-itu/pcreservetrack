@@ -38,12 +38,37 @@ export function AuthForm() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    await login(loginStaffNum, loginPassword);
+    
+    // Enhanced validation
+    if (!loginStaffNum.trim() || !loginPassword.trim()) {
+      return;
+    }
+    
+    // Sanitize staff number input
+    const sanitizedStaffNum = loginStaffNum.replace(/[^a-zA-Z0-9]/g, '').slice(0, 20);
+    
+    await login(sanitizedStaffNum, loginPassword);
   };
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    await register(registerName, registerEmail, registerPassword, registerRole, staffNum);
+    
+    // Enhanced validation
+    if (!registerName.trim() || !registerEmail.trim() || !registerPassword.trim() || !staffNum.trim()) {
+      return;
+    }
+    
+    // Sanitize inputs
+    const sanitizedName = registerName.replace(/[<>]/g, '').trim().slice(0, 50);
+    const sanitizedEmail = registerEmail.toLowerCase().trim().slice(0, 100);
+    const sanitizedStaffNum = staffNum.replace(/[^a-zA-Z0-9]/g, '').slice(0, 20);
+    
+    // Additional validation
+    if (sanitizedName.length < 2 || sanitizedStaffNum.length < 6) {
+      return;
+    }
+    
+    await register(sanitizedName, sanitizedEmail, registerPassword, registerRole, sanitizedStaffNum);
   };
 
   // Helper to get the proper label for the identification field based on role

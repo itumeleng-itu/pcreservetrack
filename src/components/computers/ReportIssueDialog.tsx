@@ -15,11 +15,30 @@ export function ReportIssueDialog({ onReportIssue }: ReportIssueDialogProps) {
   const [isEmergency, setIsEmergency] = useState(false);
   
   const handleReportFault = () => {
-    if (faultDescription.trim()) {
-      onReportIssue(faultDescription, isEmergency);
-      setFaultDescription("");
-      setIsEmergency(false);
+    const trimmedDescription = faultDescription.trim();
+    
+    // Enhanced validation
+    if (!trimmedDescription) {
+      return; // Don't proceed if empty
     }
+    
+    if (trimmedDescription.length < 10) {
+      return; // Don't proceed if too short
+    }
+    
+    if (trimmedDescription.length > 500) {
+      return; // Don't proceed if too long
+    }
+    
+    // Sanitize input to prevent XSS
+    const sanitizedDescription = trimmedDescription
+      .replace(/[<>]/g, '') // Remove potential HTML tags
+      .replace(/javascript:/gi, '') // Remove javascript: protocol
+      .replace(/on\w+=/gi, ''); // Remove event handlers
+    
+    onReportIssue(sanitizedDescription, isEmergency);
+    setFaultDescription("");
+    setIsEmergency(false);
   };
 
   return (
@@ -42,6 +61,9 @@ export function ReportIssueDialog({ onReportIssue }: ReportIssueDialogProps) {
               placeholder="Describe the issue..."
               value={faultDescription}
               onChange={(e) => setFaultDescription(e.target.value)}
+              minLength={10}
+              maxLength={500}
+              required
             />
           </div>
           <div className="flex items-center space-x-2">

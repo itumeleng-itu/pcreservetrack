@@ -74,27 +74,33 @@ const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
     return null
   }
 
+  // Sanitize the chart ID to prevent XSS
+  const sanitizedId = id.replace(/[^a-zA-Z0-9-_]/g, '');
+
+  // Create CSS rules safely without dangerouslySetInnerHTML
+  const cssRules = Object.entries(THEMES)
+    .map(([theme, prefix]) => {
+      const selector = prefix ? `${prefix} [data-chart="${sanitizedId}"]` : `[data-chart="${sanitizedId}"]`;
+      const colorRules = colorConfig
+        .map(([key, itemConfig]) => {
+          const color = itemConfig.theme?.[theme as keyof typeof itemConfig.theme] || itemConfig.color;
+          // Sanitize color values and CSS keys
+          const sanitizedKey = key.replace(/[^a-zA-Z0-9-_]/g, '');
+          const sanitizedColor = color?.replace(/[<>"']/g, '') || '';
+          return sanitizedColor ? `  --color-${sanitizedKey}: ${sanitizedColor};` : null;
+        })
+        .filter(Boolean)
+        .join('\n');
+      
+      return colorRules ? `${selector} {\n${colorRules}\n}` : null;
+    })
+    .filter(Boolean)
+    .join('\n');
+
   return (
-    <style
-      dangerouslySetInnerHTML={{
-        __html: Object.entries(THEMES)
-          .map(
-            ([theme, prefix]) => `
-${prefix} [data-chart=${id}] {
-${colorConfig
-  .map(([key, itemConfig]) => {
-    const color =
-      itemConfig.theme?.[theme as keyof typeof itemConfig.theme] ||
-      itemConfig.color
-    return color ? `  --color-${key}: ${color};` : null
-  })
-  .join("\n")}
-}
-`
-          )
-          .join("\n"),
-      }}
-    />
+    <style>
+      {cssRules}
+    </style>
   )
 }
 
