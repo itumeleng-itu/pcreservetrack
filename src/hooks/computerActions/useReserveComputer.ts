@@ -84,10 +84,9 @@ export const useReserveComputer = ( // This hook is used to reserve a computer
     try {
       console.log(`Creating reservation for computer ${computerId} from ${startTime.toISOString()} to ${endTime.toISOString()}`);
       
-      // Create reservation in database using the reserve_computer function
-      const { data: reservationResult, error } = await supabase.rpc('reserve_computer', {
+      // Create reservation in database using the secure function
+      const { data: reservationResult, error } = await supabase.rpc('reserve_computer_secure', {
         p_computer_id: parseInt(computerId),
-        p_user_id: currentUser.id,
         p_start_time: startTime.toISOString(),
         p_end_time: endTime.toISOString()
       });
@@ -106,11 +105,26 @@ export const useReserveComputer = ( // This hook is used to reserve a computer
       if (reservationResult) {
         const result = reservationResult as any;
         if (result && typeof result === 'object' && 'error' in result) {
+          let errorMessage = "Failed to create reservation";
+          
+          switch (result.error) {
+            case 'UNAUTHORIZED':
+              errorMessage = "You are not authorized to make reservations";
+              break;
+            case 'USER_NOT_REGISTERED':
+              errorMessage = "Your account is not properly registered";
+              break;
+            case 'TIME_CONFLICT':
+              errorMessage = "This computer is already reserved for the selected time slot";
+              break;
+            case 'RESERVATION_FAILED':
+              errorMessage = "Reservation failed. Please try again";
+              break;
+          }
+          
           toast({
             title: "Reservation failed", 
-            description: result.error === 'COMPUTER_ALREADY_RESERVED' 
-              ? "This computer is already reserved for the selected time slot"
-              : "Failed to create reservation",
+            description: errorMessage,
             variant: "destructive",
           });
           return [false, null];

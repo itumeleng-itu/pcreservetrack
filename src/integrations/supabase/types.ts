@@ -773,6 +773,14 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_user_role_secure: {
+        Args: { user_uuid: string }
+        Returns: string
+      }
+      log_security_event: {
+        Args: { p_user_id: string; p_event_type: string; p_details?: Json }
+        Returns: undefined
+      }
       register_user: {
         Args: { email: string; user_id: string }
         Returns: undefined
@@ -790,6 +798,23 @@ export type Database = {
               p_start_time: string
               p_end_time: string
             }
+        Returns: boolean
+      }
+      reserve_computer_secure: {
+        Args: {
+          p_computer_id: number
+          p_start_time: string
+          p_end_time: string
+        }
+        Returns: Json
+      }
+      validate_reservation_time: {
+        Args: {
+          p_computer_id: number
+          p_start_time: string
+          p_end_time: string
+          p_user_id?: string
+        }
         Returns: boolean
       }
     }
